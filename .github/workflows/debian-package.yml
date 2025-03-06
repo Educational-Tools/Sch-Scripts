@@ -30,3 +30,6 @@ jobs:
 
     - name: Upload Debian package
       uses: actions/upload-artifact@v3
+      with:
+        name: sch-scripts-deb
+        path: ../*.deb
