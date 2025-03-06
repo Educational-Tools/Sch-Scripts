@@ -23,6 +23,13 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential devscripts debhelper
 
+    - name: Create source tarball
+      run: |
+        cd $GITHUB_WORKSPACE
+        VERSION=$(dpkg-parsechangelog --show-field Version | sed 's/-.*//')
+        TARBALL="../sch-scripts_${VERSION}.orig.tar.gz"
+        git archive --format=tar.gz --prefix=sch-scripts/ -o $TARBALL HEAD
+
     - name: Build Debian package
       run: |
         cd $GITHUB_WORKSPACE
