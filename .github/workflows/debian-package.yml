@@ -1,0 +1,35 @@
+name: Build Debian Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential devscripts debhelper
+
+    - name: Build Debian package
+      run: |
+        cd $GITHUB_WORKSPACE
+        debuild -us -uc
+
+    - name: Upload Debian package
+      uses: actions/upload-artifact@v2
+      with:
+        name: sch-scripts-deb
+        path: ../*.deb
