@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: sch-scripts
-Source: https://gitlab.com/sch-scripts/sch-scripts
+Source: https://github.com/Educational-Tools/Sch-Scripts
 
 Files: *
 Copyright: 2009-2022 the sch-scripts team, see AUTHORS

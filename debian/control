@@ -1,12 +1,12 @@
 Source: sch-scripts
 Section: admin
 Priority: optional
-Maintainer: Hellenic Schools Technical Support Team <devs@ts.sch.gr>
+Maintainer: Dimitrys <demetresmeliates@gmail.com>
 Build-Depends: debhelper (>= 10)
 Standards-Version: 4.5.0
 Rules-Requires-Root: no
-Vcs-Git: https://gitlab.com/sch-scripts/sch-scripts.git
-Vcs-Browser: https://gitlab.com/sch-scripts/sch-scripts
+Vcs-Git: https://github.com/Educational-Tools/Sch-Scripts.git
+Vcs-Browser: https://github.com/Educational-Tools/Sch-Scripts
 Homepage: https://sch-scripts.gitlab.io
 
 Package: sch-scripts
