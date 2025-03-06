@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 -->
+<interface>
+  <requires lib="gtk+" version="3.2"/>
+  <object class="GtkListStore" id="groups_store">
+    <columns>
+      <!-- column-name instance -->
+      <column type="PyObject"/>
+      <!-- column-name GID -->
+      <column type="guint"/>
+      <!-- column-name Name -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkTreeModelFilter" id="groups_filter">
+    <property name="child-model">groups_store</property>
+  </object>
+  <object class="GtkTreeModelSort" id="groups_sort">
+    <property name="model">groups_filter</property>
+  </object>
+  <object class="GtkListStore" id="users_store">
+    <columns>
+      <!-- column-name instance -->
+      <column type="PyObject"/>
+      <!-- column-name UID -->
+      <column type="gint"/>
+      <!-- column-name Username -->
+      <column type="gchararray"/>
+      <!-- column-name Primary_group -->
+      <column type="gchararray"/>
+      <!-- column-name Full_name -->
+      <column type="gchararray"/>
+      <!-- column-name Office -->
+      <column type="gchararray"/>
+      <!-- column-name Office_phone -->
+      <column type="gchararray"/>
+      <!-- column-name Home_phone -->
+      <column type="gchararray"/>
+      <!-- column-name Other -->
+      <column type="gchararray"/>
+      <!-- column-name Directory -->
+      <column type="gchararray"/>
+      <!-- column-name Shell -->
+      <column type="gchararray"/>
+      <!-- column-name Last_password_change -->
+      <column type="gint"/>
+      <!-- column-name Minimum -->
+      <column type="gint"/>
+      <!-- column-name Maximum -->
+      <column type="gint"/>
+      <!-- column-name Warn -->
+      <column type="gint"/>
+      <!-- column-name Inactive -->
+      <column type="gint"/>
+      <!-- column-name Expire -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkTreeModelFilter" id="users_filter">
+    <property name="child-model">users_store</property>
+  </object>
+  <object class="GtkTreeModelSort" id="users_sort">
+    <property name="model">users_filter</property>
+  </object>
+  <object class="GtkWindow" id="main_window">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Διαχείριση ΣΕΠΕΗΥ</property>
+    <property name="window-position">center</property>
+    <property name="default-width">800</property>
+    <property name="default-height">500</property>
+    <property name="icon">/usr/share/pixmaps/sch-scripts.svg</property>
+    <signal name="delete-event" handler="on_main_window_delete_event" swapped="no"/>
+    <child>
+      <object class="GtkBox" id="box1">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkMenuBar" id="menubar1">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkMenuItem" id="mi_file">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Αρχείο</property>
+                <property name="use-underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="mn_file">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_signup">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Φόρμα για αιτήσεις ανοίγματος λογαριασμών από τους χρήστες</property>
+                        <property name="label" translatable="yes">Ενεργοποίηση εγγραφών χρηστών...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_signup_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_new_users">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Φόρμα μαζικής δημιουργίας λογαριασμών χρηστών με παραπλήσια ονόματα</property>
+                        <property name="label" translatable="yes">Δημιουργία χρηστών ανά υπολογιστή...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_new_users_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="mi_seperator1">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_import_passwd">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Εισαγωγή λογαριασμών χρηστών από αρχείο passwd παλιότερης εγκατάστασης</property>
+                        <property name="label" translatable="yes">Εισαγωγή από passwd...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_import_passwd_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_import_from_csv">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Εισαγωγή λογαριασμών χρηστών από αρχείο csv παλιότερης εγκατάστασης</property>
+                        <property name="label" translatable="yes">Εισαγωγή από csv...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_import_csv_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_export_csv">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Εξαγωγή λογαριασμών χρηστών σε αρχείο csv</property>
+                        <property name="label" translatable="yes">Εξαγωγή σε csv...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_export_csv_activate" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="mi_server">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Εξυπηρετητής</property>
+                <property name="use-underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="mn_server">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_server_actions">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Ενέργειες</property>
+                        <child type="submenu">
+                          <object class="GtkMenu" id="mn_server_actions">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_initial_setup">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Μετά από την αρχική εγκατάσταση ή μεγάλη αναβάθμιση των sch-scripts</property>
+                                <property name="label" translatable="yes">Αρχική εγκατάσταση</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_initial_setup_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_configuration_network">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Μετά από αλλαγή υποδικτύου (subnet), π.χ. αλλαγή router ή σχολείου</property>
+                                <property name="label" translatable="yes">Ρύθμιση σύνδεσης δικτύου...</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_configuration_network_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_updates">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Πραγματοποιεί λήψη και εγκατάσταση των ενημερώσεων λογισμικού</property>
+                                <property name="label" translatable="yes">Ενημερώσεις λογισμικού...</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_updates_activate" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_ltsp_commands">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Εντολές LTSP</property>
+                        <property name="use-underline">True</property>
+                        <child type="submenu">
+                          <object class="GtkMenu" id="mn_ltsp_image">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_image">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Δημοσιεύει ένα αντίγραφο του δίσκου του εξυπηρετητή στο δίκτυο</property>
+                                <property name="label" translatable="yes">ltsp image (δημοσίευση)...</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_image_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_image_revert">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Επαναφέρει τον εικονικό δίσκο του εξυπηρετητή στην προηγούμενη έκδοση</property>
+                                <property name="label" translatable="yes">ltsp image -r (επαναφορά)...</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_image_revert_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_dnsmasq">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Προτιμήστε το Εξυπηρετητής → Ενέργειες → Ρύθμιση σύνδεσης δικτύου</property>
+                                <property name="label" translatable="yes">ltsp dnsmasq</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_dnsmasq_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_info">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Προβολή πληροφοριών LTSP</property>
+                                <property name="label" translatable="yes">ltsp info</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_info_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_initrd">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Μετά από αλλαγές στο ltsp.conf ή στους λογαριασμούς χρηστών</property>
+                                <property name="label" translatable="yes">ltsp initrd</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_initrd_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_ipxe">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Μετά από προσθήκη νέου εικονικού δίσκου ή της εντολής KERNEL_PARAMETERS= στο ltsp.conf</property>
+                                <property name="label" translatable="yes">ltsp ipxe</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_ipxe_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_kernel">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Μετά από αναβαθμίσεις του x86_32 VirtualBox image</property>
+                                <property name="label" translatable="yes">ltsp kernel</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_kernel_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_ltsp_nfs">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Ρύθμιση του NFS</property>
+                                <property name="label" translatable="yes">ltsp nfs</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_ltsp_nfs_activate" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_configuration_files">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Αρχεία ρυθμίσεων</property>
+                        <child type="submenu">
+                          <object class="GtkMenu" id="mn_configuration_files">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_edit_ltsp_conf">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="tooltip-text" translatable="yes">Κεντρικό αρχείο ρυθμίσεων του LTSP</property>
+                                <property name="label" translatable="yes">ltsp.conf</property>
+                                <signal name="activate" handler="on_mi_edit_ltsp_conf_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_edit_ltsp_dnsmasq_conf">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">ltsp-dnsmasq.conf</property>
+                                <signal name="activate" handler="on_mi_edit_ltsp_dnsmasq_conf_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_edit_ltsp_ipxe">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">ltsp.ipxe</property>
+                                <property name="use-underline">True</property>
+                                <signal name="activate" handler="on_mi_edit_ltsp_ipxe_activate" swapped="no"/>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkMenuItem" id="mi_edit_grub_cfg">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">grub.d/sch-scripts.cfg</property>
+                                <signal name="activate" handler="on_mi_edit_grub_cfg_activate" swapped="no"/>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="mi_view">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Προβολή</property>
+                <property name="use-underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="mn_view">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem" id="mn_columns">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Στήλες</property>
+                        <property name="use-underline">True</property>
+                        <child type="submenu">
+                          <object class="GtkMenu" id="mn_view_columns">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="mi_show_system_groups">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Εμφάνιση ομάδων συστήματος</property>
+                        <property name="use-underline">True</property>
+                        <signal name="toggled" handler="on_mi_show_system_groups_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="mi_show_private_groups">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Εμφάνιση προσωπικών ομάδων</property>
+                        <property name="use-underline">True</property>
+                        <signal name="toggled" handler="on_mi_show_private_groups_toggled" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="mi_separator2">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_refresh">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Ανανέωση</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_refresh_activate" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="mi_groups">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Ομάδες</property>
+                <property name="use-underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="mn_groups">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_new_group">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Νέα ομάδα...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_new_group_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_edit_group">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Επεξεργασία ομάδας...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_edit_group_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_delete_group">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Διαγραφή ομάδας...</property>
+                        <signal name="activate" handler="on_mi_delete_group_activate" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="mi_users">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Χρήστες</property>
+                <property name="use-underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="mn_users">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_new_user">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Νέος χρήστης...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_new_user_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_edit_user">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Επεξεργασία χρήστη...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_edit_user_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_delete_user">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Διαγραφή χρήστη...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_delete_user_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_remove_user">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Αφαίρεση από τις επιλεγμένες ομάδες</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_remove_user_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_run_users">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Εκτέλεση εντολών...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_run_users_activate" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkMenuItem" id="mi_help">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="label" translatable="yes">_Βοήθεια</property>
+                <property name="use-underline">True</property>
+                <child type="submenu">
+                  <object class="GtkMenu" id="mn_help">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_home">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text">Άνοιγμα της σελίδας https://ts.sch.gr/wiki/linux</property>
+                        <property name="label" translatable="yes">Εγχειρίδιο Linux</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_home_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_support">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text">Άνοιγμα της σελίδας https://ts.sch.gr/wiki/linux/support</property>
+                        <property name="label" translatable="yes">Σελίδα υποστήριξης</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_support_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_report_bug">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text">Άνοιγμα της σελίδας https://gitlab.com/sch-scripts/sch-scripts/issues</property>
+                        <property name="label" translatable="yes">Αναφορά σφάλματος</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_report_bug_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="mi_separator3">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_ltsp_conf_manpage">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text">Άνοιγμα της σελίδας https://ltsp.org/man/ltsp.conf</property>
+                        <property name="label" translatable="yes">Τεκμηρίωση του ltsp.conf</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_ltsp_conf_manpage_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_map">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text">Άνοιγμα της σελίδας https://ts.sch.gr/wiki/linux/ltsp/map</property>
+                        <property name="label" translatable="yes">Χάρτης ΣΕΠΕΗΥ με LTSP</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_map_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="mi_separator4">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="mi_about">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Σχετικά με το πρόγραμμα</property>
+                        <property name="label" translatable="yes">Περί</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_about_activate" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkPaned" id="paned1">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="position">180</property>
+            <child>
+              <object class="GtkBox" id="box2">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="scrolledwindow2">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="shadow-type">in</property>
+                    <child>
+                      <object class="GtkTreeView" id="groups_treeview">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="model">groups_sort</property>
+                        <property name="search-column">2</property>
+                        <property name="rubber-banding">True</property>
+                        <signal name="button-press-event" handler="on_groups_tv_button_press_event" swapped="no"/>
+                        <signal name="row-activated" handler="on_groups_treeview_row_activated" swapped="no"/>
+                        <child internal-child="selection">
+                          <object class="GtkTreeSelection" id="groups_selection">
+                            <property name="mode">multiple</property>
+                            <signal name="changed" handler="on_groups_selection_changed" swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="gtv_gid_column">
+                            <property name="resizable">True</property>
+                            <property name="title" translatable="yes">GID</property>
+                            <property name="clickable">True</property>
+                            <property name="reorderable">True</property>
+                            <property name="sort-column-id">1</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext17"/>
+                              <attributes>
+                                <attribute name="text">1</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkTreeViewColumn" id="gtv_groupname_column">
+                            <property name="resizable">True</property>
+                            <property name="title" translatable="yes">Όνομα ομάδας</property>
+                            <property name="clickable">True</property>
+                            <property name="reorderable">True</property>
+                            <property name="sort-column-id">2</property>
+                            <child>
+                              <object class="GtkCellRendererText" id="cellrenderertext18"/>
+                              <attributes>
+                                <attribute name="text">2</attribute>
+                              </attributes>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="unselect_all_groups">
+                    <property name="label" translatable="yes">Αποεπιλογή όλων</property>
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="receives-default">True</property>
+                    <signal name="clicked" handler="on_unselect_all_groups_clicked" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">False</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="scrolledwindow1">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <object class="GtkTreeView" id="users_treeview">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="model">users_sort</property>
+                    <property name="search-column">2</property>
+                    <property name="rubber-banding">True</property>
+                    <signal name="button-press-event" handler="on_users_tv_button_press_event" swapped="no"/>
+                    <signal name="row-activated" handler="on_users_treeview_row_activated" swapped="no"/>
+                    <child internal-child="selection">
+                      <object class="GtkTreeSelection" id="treeview-selection">
+                        <property name="mode">multiple</property>
+                        <signal name="changed" handler="on_users_selection_changed" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_uid_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">UID</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">1</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext1"/>
+                          <attributes>
+                            <attribute name="text">1</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_username_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Όνομα χρήστη</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">2</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext2"/>
+                          <attributes>
+                            <attribute name="text">2</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_primary_group_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Κύρια ομάδα</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">3</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                          <attributes>
+                            <attribute name="text">3</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_full_name_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Ονοματεπώνυμο</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">4</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext4"/>
+                          <attributes>
+                            <attribute name="text">4</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_office_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Γραφείο</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">5</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext5"/>
+                          <attributes>
+                            <attribute name="text">5</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_office_phone_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Τηλ. γραφείου</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">6</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext6"/>
+                          <attributes>
+                            <attribute name="text">6</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_home_phone_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Τηλ. οικίας</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">7</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext7"/>
+                          <attributes>
+                            <attribute name="text">7</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_other_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Άλλο</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">8</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext8"/>
+                          <attributes>
+                            <attribute name="text">8</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_directory_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Κατάλογος</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">9</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext9"/>
+                          <attributes>
+                            <attribute name="text">9</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_shell_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Κέλυφος</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">10</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext10"/>
+                          <attributes>
+                            <attribute name="text">10</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_last_pass_change_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Τελευταία αλλαγή κωδικού</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">11</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext11"/>
+                          <attributes>
+                            <attribute name="text">11</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_minimum_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Ελάχιστη διάρκεια</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">12</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext12"/>
+                          <attributes>
+                            <attribute name="text">12</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_maximum_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Μέγιστη διάρκεια</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">13</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext13"/>
+                          <attributes>
+                            <attribute name="text">13</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_warn_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Προειδοποίηση</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">14</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext14"/>
+                          <attributes>
+                            <attribute name="text">14</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_inactive_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Ανενεργός</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">15</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext15"/>
+                          <attributes>
+                            <attribute name="text">15</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkTreeViewColumn" id="utv_expire_column">
+                        <property name="visible">False</property>
+                        <property name="resizable">True</property>
+                        <property name="title" translatable="yes">Λήξη</property>
+                        <property name="clickable">True</property>
+                        <property name="reorderable">True</property>
+                        <property name="sort-column-id">16</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="cellrenderertext16"/>
+                          <attributes>
+                            <attribute name="text">16</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">True</property>
+                <property name="shrink">False</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="statusbar">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">2</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

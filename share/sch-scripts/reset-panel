@@ -1,0 +1,45 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2022 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+usage() {
+    cat <<EOF
+Reset settings and respawn mate-panel.
+EOF
+}
+
+# Background a terminal task. See:
+# https://github.com/epoptes/epoptes/blob/main/data/client-functions#L154
+background() {
+    (
+        unset DESKTOP_AUTOSTART_ID
+        exec 0</dev/null >/dev/null 2>~/.xsession-errors
+        setsid -f "$@" &
+    )
+}
+
+main() {
+    test -x /usr/bin/mate-panel || return 0
+
+    # I *think* -QUIT prevents it from respawning, so that we can
+    # reset the settings without worrying about race conditions.
+    # Although, it seems to make it exit with a crash dump!
+    if pkill -QUIT -U "$(id -u)" mate-panel; then
+        sleep 1
+    fi
+    # Sometimes dconf has zero size; maybe sshfs bug?
+    if [ ! -s ~/.config/dconf/user ]; then
+        pkill -U "$(id -u)" mate-settings-daemon
+        mv ~/.config/dconf ~/.config/dconf."$(date +%s)"
+        background mate-settings-daemon
+        sleep 1
+    fi
+    gsettings reset-recursively org.mate.panel
+    if [ -n "$1" ]; then
+        mate-panel --reset --layout "$1"
+    fi
+    background mate-panel --replace
+}
+
+main "$@"

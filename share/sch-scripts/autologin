@@ -1,0 +1,36 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2019-2022 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+username=$1
+case "$username" in
+    "")
+        echo "Usage: $0 <username>
+
+Configure lightdm to autologin with the specified username, and restart it.
+Username can be one of the following:
+    false: disable autologin
+    teacher1: login as user 'teacher1'
+    pc/a1-: if the username contains a slash, it's considered a regex.
+        This regular expression is applied with 'sed' to the hostname,
+        and the derived string is used as the username.
+        So pc01 would be configured for autologin with user a1-01, etc.
+"
+        exit 1
+        ;;
+    */*)
+        hostname=$(hostname -s)
+        username=$(echo "$hostname" | sed "s/$username/")
+        ;;
+    false)
+        username=""
+esac
+
+if [ -n "$username" ] && ! getent passwd "$username" >/dev/null; then
+    echo "User '$username' does not exist" >&2
+    exit 1
+fi
+
+sed "s/\(^autologin-user=\).*/\1$username/" -i /etc/lightdm/lightdm.conf
+systemctl restart lightdm

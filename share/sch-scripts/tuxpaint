@@ -1,0 +1,4 @@
+#!/bin/sh
+# Start tuxtype fullscreen.
+
+exec /usr/bin/tuxpaint --native --fullscreen 1 "$@"

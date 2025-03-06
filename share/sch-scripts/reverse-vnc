@@ -1,0 +1,30 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2018-2022 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# It would be best to forward a random port: ssh -tCR 0:localhost:5500
+# But ssh doesn't export the forwarded port to the environment,
+# and it even hides information as it's started as root, then chowed to user.
+# The best effort so far to discover the port is:
+# ss -t4nlp | sed -n 's/[^:]*127.0.0.1:\([0-9]*\) *0.0.0.0:\* *$/\1/p'
+# But I've found no way to tell which is from our $PPID vs from other sshd.
+# So, if sshvnc isn't used, then ssh -tCR 5501:localhost:5500 needs to be used.
+port=${1:-1}
+portmsg=${1:-5501}
+
+echo "Reverse VNC to port $portmsg for SSH user $SSH_CONNECTION"
+if output=$(/usr/share/epoptes-client/get-display); then
+    export ${output?}
+else
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "Could not access the display. Trying as root:" >&2
+        # TODO: prefer pkexec
+        exec sudo "$0" "$@"
+    else
+        echo "Could not access the display even as root. Here's a shell to troubleshoot:" >&2
+        exec bash -l
+    fi
+fi
+# See https://www.virtualbox.org/ticket/4772 about skip_keycodes
+exec x11vnc -xkb -skip_keycodes 187,188 -q -nopw -connect_or_exit "localhost:$port"

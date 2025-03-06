@@ -1,0 +1,14 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2019-2022 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Disable XPresent on nouveau (marco #548)
+# Needs special marco build from Greek schools PPA
+if [ "$MARCO_NO_XPRESENT" = "0" ]; then
+    unset MARCO_NO_XPRESENT
+elif [ -d /sys/module/nouveau ]; then
+    export MARCO_NO_XPRESENT=1
+fi
+
+exec /usr/bin/marco "$@"

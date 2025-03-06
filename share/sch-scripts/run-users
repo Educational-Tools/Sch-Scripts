@@ -1,0 +1,128 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2020-2022 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+usage() {
+    cat <<"EOF"
+Usage: run-users LIST,OF,USERS COMMAND
+
+Run the specified COMMAND for all USERS.
+The list of users is separated by commas (as in /etc/group).
+COMMAND should be enclosed in single quotes in order to be evaluated correctly.
+It's allowed to contain the following shell variables:
+    $USER, $GROUP, $UID, $GID, $HOME, $SHELL
+Commands can run in parallel if they end in &.
+
+Some predefined commands are:
+    as_user: run the command as the user instead of root
+    cp_skel: copy the skelecton directory, /etc/skel
+    rm_dconf: delete the GNOME and MATE settings database
+    rm_dotfiles: delete all .* files under $HOME, which contain settings etc
+    rm_home: delete all files and settings under $HOME
+    set_owner: set the correct owner for all files under $HOME
+    set_password [password]: set the user password; defaults to $USER
+EOF
+}
+
+main() {
+    local _OLDIFS users cmd
+
+    _OLDIFS=$IFS
+    if [ -z "$_OLDIFS" ]; then
+        _OLDIFS=$(printf " \t\n.")
+        _OLDIFS=${_OLDIFS%.}
+    fi
+    users=$1
+    shift
+    cmd=$*
+    IFS=, && set -- $users && IFS=$_OLDIFS
+    for user; do
+        set_environment "$user"
+        silent "== Running command for $USER($UID):$GROUP($GID) =="
+        eval "$cmd"
+    done
+}
+
+silent() {
+    if [ "$SILENT" != "1" ]; then
+        echo "$@" >&2
+    fi
+}
+
+# Output a message to stderr and abort execution
+die() {
+    echo "$@" >&2
+    exit 1
+}
+
+# POSIX recommends that printf is preferred over echo.
+# But do offer a simple wrapper to avoid "%s\n" all the time.
+echo() {
+    printf "%s\n" "$*"
+}
+
+re() {
+    "$@" || die "Command failed: $*"
+}
+
+set_environment() {
+    local line
+
+    line=$(getent passwd "$1")
+    test -n "$line" || die "Invalid USER: $1"
+    IFS=: && set -- $line && IFS=$_OLDIFS
+    USER=$1
+    UID=$3
+    GID=$4
+    HOME=$6
+    SHELL=$7
+    line=$(getent group "$GID")
+    test -n "$line" || die "Invalid GID: $GID"
+    IFS=: && set -- $line && IFS=$_OLDIFS
+    GROUP=$1
+    if [ ! -d "$HOME" ] && [ "$HOME#/home" != "$HOME" ]; then
+        echo "Creating $HOME"
+        re mkdir -p "$HOME"
+    fi
+    # We always want to be inside $HOME before command execution
+    cd "$HOME" || die "Invalid HOME: $HOME"
+}
+
+# The available commands follow, sorted lexicographically
+
+as_user() {
+    # setpriv is faster than runuser/su/sudo as it doesn't use PAM
+    re setpriv --reuid "$UID" --regid "$GID" --init-groups -- "$@"
+}
+
+cp_skel() {
+    as_user cp -a /etc/skel/. "$HOME/"
+}
+
+rm_dconf() {
+    re rm -rf "$HOME/.config/dconf"
+}
+
+rm_dotfiles() {
+    re rm -rf "$HOME"/.[!.]*
+    cp_skel
+}
+
+rm_home() {
+    re find "$HOME" -mindepth 1 -delete
+    cp_skel
+}
+
+set_owner() {
+    re chown -R "$UID:$GID" "$HOME"
+}
+
+set_password() {
+    local pass
+
+    pass=${1:-$USER}
+    printf "%s\n%s\n" "$pass" "$pass" | passwd "$USER"
+}
+
+main "$@"

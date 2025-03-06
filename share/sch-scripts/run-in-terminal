@@ -1,0 +1,280 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2010-2023 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+usage() {
+    cat <<EOF
+Usage: $0 [OPTIONS] [COMMAND]
+
+Run the specified COMMAND in a terminal, either the current if one is open,
+or in a new one if run e.g. with Alt+F2.
+In the end show a failure or success message.
+
+Options:
+    -s, --source   Assume COMMAND is a shell script and source it so
+                   that it has access to some common shell functions
+
+Available internal commands:
+    sch_keyring    Add the ts.sch.gr repositories to apt sources
+    sch_scripts    Install sch-scripts to make an LTSP server
+EOF
+}
+
+main() {
+    busybox_fallbacks
+    # First check if we need to spawn an x-terminal-emulator
+    if [ "$SPAWNED_TERM" != true ] && { [ ! -t 0 ] || [ ! -t 1 ]; } &&
+        xmodmap -n >/dev/null 2>&1; then
+        title=${1##*/}
+        case "$title" in
+        -s | --source) title=${2##*/} ;;
+        '') title=${0##*/} ;;
+        esac
+        SPAWNED_TERM=true exec x-terminal-emulator -T "$title" -e sh "$0" "$@"
+    fi
+
+    # Analyze the command line, set "$title" for exit messages, and run the command
+    case "$1" in
+    -s | --source)
+        script="$2"
+        shift 2
+        test -f "$script" || die "Script not found: $script"
+        title=${script##*/}
+        bold "Γίνεται εκτέλεση της εντολής: $title $*"
+        . "$script"
+        ;;
+    sch_keyring | sch_scripts)
+        # Internal commands
+        if [ "$(id -u)" -ne 0 ]; then
+            bold "Για να γίνει προσθήκη αποθετηρίων απαιτούνται δικαιώματα διαχειριστή.
+Θα χρειαστεί να εισάγετε τον κωδικό πρόσβασης του λογαριασμού σας."
+            exec sudo sh "$0" "$@"
+        fi
+        title="Installing $1"
+        printf "\033]0;%s\a" "$title"
+        "$@"
+        pause_exit $?
+        ;;
+    '')
+        usage >&2
+        pause_exit 1
+        ;;
+    *)
+        # If we didn't spawn a terminal, just exec the command
+        test "$SPAWNED_TERM" != true && exec "$@"
+        title=$*
+        bold "Γίνεται εκτέλεση της εντολής: $*"
+        # Try to set the terminal title
+        printf "\033]0;%s\a" "$title"
+        "$@"
+        ;;
+    esac
+    ret=$?
+    if [ $ret -eq 0 ]; then
+        bold "
+Η εντολή '$title' ολοκληρώθηκε με επιτυχία."
+    else
+        bold "
+Η εντολή '$title' απέτυχε με κωδικό σφάλματος $ret."
+    fi
+    pause_exit "$ret"
+}
+
+bold() {
+    if [ -z "$printbold_first_time" ]; then
+        printbold_first_time=true
+        bold_face=$(tput bold 2>/dev/null) || true
+        normal_face=$(tput sgr0 2>/dev/null) || true
+    fi
+    echo "${bold_face}$*${normal_face}"
+}
+
+# For the external tools we need that are also provided by busybox,
+# if some tool doesn't exist, create a namesake function that calls busybox.
+# `/usr/lib/initramfs-tools/bin/busybox` shows the smallest list of tools.
+busybox_fallbacks() {
+    local busybox tool
+
+    busybox=$(command -v busybox)
+    # Ubuntu chroots ship with a "busybox-initramfs" minimal package
+    if [ -z "$busybox" ] && [ -x /usr/lib/initramfs-tools/bin/busybox ]; then
+        busybox=/usr/lib/initramfs-tools/bin/busybox
+    fi
+    if [ -z "$busybox" ]; then
+        warn "Busybox not found?!"
+        return 0
+    fi
+    for tool in awk blockdev cat chgrp chmod chown chroot chvt cp \
+        cpio cut date df env expr find getopt grep head hostname id \
+        insmod ionice ip kill killall ln logger losetup ls lsmod \
+        mkdir mktemp modprobe mount mv nc netstat pidof ping \
+        poweroff ps pwd readlink rm rmdir rmmod sed setsid sleep sort \
+        swapoff swapon switch_root sync tee touch tr truncate umount \
+        uname wc wget; do
+        # Periodically, prefix a "true" to the following line and test all
+        # applets to see if we are indeed compatible with the busybox syntax
+        ! is_command "$tool" || continue
+        eval "$tool() {
+    $busybox $tool \"\$@\"
+}"
+    done
+}
+
+confirm() {
+    local answer
+
+    printf "%s" "$1"
+    read -r answer
+    test -n "$answer" || answer="true"
+    if ! is_true "$answer"; then
+        echo "Ακυρώθηκε από το χρήστη." >&2
+        pause_exit 2
+    fi
+}
+
+# Output a message to stderr and abort execution
+die() {
+    log "$@"
+    bold "ERROR in ${0##*/}:" >&2
+    echo "$@" >&2
+    pause_exit 1
+}
+
+# POSIX recommends that printf is preferred over echo.
+# But do offer a simple wrapper to avoid "%s\n" all the time.
+echo() {
+    printf "%s\n" "$*"
+}
+
+# Check if parameter is a command; `command -v` isn't allowed by POSIX
+is_command() {
+    local fun
+
+    if [ -z "$is_command" ]; then
+        command -v is_command >/dev/null ||
+            die "Your shell doesn't support command -v"
+        is_command=1
+    fi
+    for fun in "$@"; do
+        command -v "$fun" >/dev/null || return $?
+    done
+}
+
+# Also contains the Greek letters for Yes/No
+is_true() {
+    case "$1" in
+    [YyΝν] | [Tt][Rr][Uu][Ee] | [Yy][Ee][Ss])
+        return 0
+        ;;
+    *)
+        return 1
+        ;;
+    esac
+}
+
+log() {
+    logger -t sch-scripts -p syslog.err "$@"
+}
+
+pause_exit() {
+    local _dummy
+
+    if [ "$SPAWNED_TERM" = true ]; then
+        printf "Πατήστε [Enter] για να κλείσετε το παρόν παράθυρο."
+        read -r _dummy
+    fi
+    exit "$@"
+}
+
+re() {
+    "$@" || die "Η εντολή απέτυχε: $*"
+}
+
+sch_keyring() {
+    # Ubuntu GNOME installations may lack universe
+    if [ -x /usr/bin/add-apt-repository ] &&
+        [ -f /usr/share/xsessions/ubuntu.desktop ]; then
+        if ! apt-cache policy | grep -q universe; then
+            bold "Γίνεται προσθήκη του αποθετηρίου universe του Ubuntu"
+            re add-apt-repository -ny universe
+        fi
+    fi
+
+    bold "Γίνεται εγκατάσταση των αποθετηρίων της Τεχνικής Στήριξης ΣΕΠΕΗΥ"
+    re wget -q https://ts.sch.gr/repo/sch-scripts/sch-archive-keyring/ -O /tmp/sch-archive-keyring.deb
+    re dpkg -i /tmp/sch-archive-keyring.deb
+    # In 18.04, add the LTSP PPA to provide the new sch-scripts/ltsp versions
+    if [ "$1" != "old" ] &&
+        grep -q bionic /etc/apt/sources.list.d/sch-archive-keyring.list &&
+        ! grep -qr "http://ppa.launchpad.net/ltsp/ppa/ubuntu" /etc/apt/sources.list*; then
+        bold "Προστίθεται και το αποθετήριο του νέου LTSP για το Ubuntu 18.04"
+        echo "deb http://ppa.launchpad.net/ltsp/ppa/ubuntu bionic main #Αποθετήριο νέου LTSP για Ubuntu 18.04" \
+            >>/etc/apt/sources.list.d/sch-archive-keyring.list
+    fi
+
+    bold "Γίνεται ενημέρωση των διαθέσιμων πακέτων"
+    apt-get update
+}
+
+sch_scripts() {
+    local packages
+
+    sch_keyring "$@"
+    if [ -x /usr/bin/mate-session ]; then
+        packages=$(dpkg-query -W -f='${Package} ${Version}\n' arctica-greeter-guest-session ayatana-indicator-application evolution-common indicator-application ipp-usb mate-hud 2>/dev/null | awk '$2 { print $1 }') || true
+        if [ -n "$packages" ]; then
+            bold "Αφαιρούνται ορισμένα ανεπιθύμητα πακέτα: $packages
+Αν θέλετε μπορείτε να τα ξαναπροσθέσετε χειρωνακτικά αργότερα"
+            re apt-get purge --yes --auto-remove $packages
+        fi
+    fi
+    if [ -x /usr/bin/snap ]; then
+        if [ -f /var/lib/snapd/desktop/applications/firefox_firefox.desktop ] &&
+            [ ! -L /var/lib/snapd/desktop/applications/firefox_firefox.desktop ]; then
+            bold "Γίνεται αντικατάσταση του snap Firefox με το deb από το MozillaTeam PPA"
+            # Remove firefox before snapd to work around LP: #1998710
+            snap remove firefox 2>/dev/null || true
+            re add-apt-repository --yes ppa:mozillateam/ppa
+            echo 'Package: *
+Pin: release o=LP-PPA-mozillateam
+Pin-Priority: 1001' >/etc/apt/preferences.d/60mozillateam-ppa
+            re apt-get install --yes --allow-downgrades firefox firefox-locale-en firefox-locale-el
+            if [ -f /usr/share/mate/applications/firefox.desktop ]; then
+                re dpkg-divert --package sch-scripts --divert \
+                    /usr/share/mate/applications/firefox-desktop.diverted \
+                    --rename /usr/share/mate/applications/firefox.desktop
+            fi
+        fi
+        # Remove snapd, THEN provide a symlink to deb firefox for panels etc
+        re apt-get purge --yes --auto-remove snapd
+        if [ ! -e /var/lib/snapd/desktop/applications/firefox_firefox.desktop ]; then
+            re mkdir -p /var/lib/snapd/desktop/applications
+            re ln -s /usr/share/applications/firefox.desktop /var/lib/snapd/desktop/applications/firefox_firefox.desktop
+        fi
+    fi
+
+    if [ ! -d /etc/dnsmasq.d ]; then
+        re mkdir -p /etc/dnsmasq.d
+        cat >/etc/dnsmasq.d/ltsp-server-dnsmasq.conf <<EOF
+# Generated by sch-scripts to silence dnsmasq installation errors.
+# It will be deleted by initial-setup.sh.
+port=0
+EOF
+    fi
+
+    bold "Γίνεται εγκατάσταση των sch-scripts"
+    re apt-get install --yes --install-recommends sch-scripts
+
+    bold "Γίνεται εκτέλεση των sch-scripts"
+    (
+        exec 0</dev/null >/dev/null 2>&1
+        setsid sch-scripts
+    ) &
+}
+
+warn() {
+    echo "$@" >&2
+}
+
+main "$@"

@@ -1,0 +1,11 @@
+#!/bin/sh
+# This file is part of sch-scripts, https://sch-scripts.gitlab.io
+# Copyright 2012-2022 the sch-scripts team, see AUTHORS
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+if [ ! -x /usr/share/sch-scripts/shared_folders.py ]; then
+    echo "/usr/share/sch-scripts/shared_folders.py not found!" >&2
+    exit 1
+fi
+cd /usr/share/sch-scripts
+exec ./shared_folders.py "$@"

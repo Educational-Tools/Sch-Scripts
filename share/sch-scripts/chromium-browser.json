@@ -1,0 +1,7 @@
+{
+  "PluginsAllowedForUrls": [
+    "file:///*"
+    "http://*",
+    "https://*"
+  ]
+}

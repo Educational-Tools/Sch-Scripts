@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+
+%:
+    dh $@
+
+override_dh_install:
+    dh_install
+    echo "__version__='$(DEBVERS)'" > "$(CURDIR)/debian/sch-scripts/usr/share/sch-scripts/version.py"
+
+override_dh_installinit:
+    dh_installinit --name=shared-folders
+
+override_dh_installgsettings:
+    dh_installgsettings --priority=50
+
+override_dh_systemd_enable:
+    dh_systemd_enable --name=shared-folders

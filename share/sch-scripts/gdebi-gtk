@@ -1,0 +1,4 @@
+#!/bin/sh
+# Make gdebi-gtk work when run from a browser (LP #1854588)
+
+/usr/share/gdebi/gdebi-gtk "$@"
