@@ -35,12 +35,15 @@ jobs:
         cd $GITHUB_WORKSPACE
         debuild -us -uc
 
+    - name: List workspace contents
+      run: ls -al $GITHUB_WORKSPACE
+
     - name: Upload Debian package
       uses: actions/upload-artifact@v4
       with:
         name: sch-scripts-deb
         path: $GITHUB_WORKSPACE/*.deb
-        if-no-files-found: warn
+        if-no-files-found: error
         compression-level: 6
         overwrite: false
         include-hidden-files: false
