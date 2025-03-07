@@ -22,9 +22,9 @@ class SharedFolders():
     def __init__(self, system=None):
         """Initialization."""
         if system is None:
-            self.system=libuser.System()
+            self.system = libuser.System()
         else:
-            self.system=system
+            self.system = system
         self.load_config()
 
     def add(self, groups):
@@ -38,8 +38,8 @@ class SharedFolders():
         """Ensures that dir exists with the specified mode, uid and gid."""
         if not os.path.isdir(dir):
             os.mkdir(dir)
-        s=os.stat(dir)
-        m=stat.S_IMODE(s.st_mode)
+        s = os.stat(dir)
+        m = stat.S_IMODE(s.st_mode)
         if m != mode:
             os.chmod(dir, mode)
         if (uid != -1 and uid != s.st_uid) or (gid != -1 and gid != s.st_gid):
@@ -61,25 +61,31 @@ class SharedFolders():
 
     def load_config(self):
         """Read the shell configuration files."""
-        # Start with default values for self.config, and then update them.
-        self.config={
-            "DISABLE_SHARED_FOLDERS":"false",
-            "DISABLE_NFS_EXPORTS":"false",
-            "RESTRICT_DIRS":"true",
-            "TEACHERS":"teachers",
-            "SHARE_DIR":"/home/Shared",
-            "SHARE_GROUPS":"teachers",
-            "ADM_UID":"1000",
-            "ADM_GID":"1000"}
-        contents=shlex.split(open("/etc/default/shared-folders").read(), True)
-        self.config.update(dict(v.split("=") for v in contents))
-        self.config["SHARE_DIR/"]=os.path.join(self.config["SHARE_DIR"], "")
-        self.config["SHARE_CONF"]=self.config["SHARE_DIR/"] + ".shared-folders"
+        self.config = {
+            "DISABLE_SHARED_FOLDERS": "false",
+            "DISABLE_NFS_EXPORTS": "false",
+            "RESTRICT_DIRS": "true",
+            "TEACHERS": "teachers",
+            "SHARE_DIR": "/home/Shared",
+            "SHARE_GROUPS": "teachers",
+            "ADM_UID": "1000",
+            "ADM_GID": "1000"
+        }
+        try:
+            with open("/etc/default/shared-folders") as f:
+                contents = shlex.split(f.read(), True)
+                self.config.update(dict(v.split("=") for v in contents))
+        except FileNotFoundError:
+            pass
+
+        self.config["SHARE_DIR/"] = os.path.join(self.config["SHARE_DIR"], "")
+        self.config["SHARE_CONF"] = self.config["SHARE_DIR/"] + ".shared-folders"
         if os.path.isfile(self.config['SHARE_CONF']):
-            contents=shlex.split(open(self.config['SHARE_CONF']).read(), True)
-            self.config.update(dict(v.split("=") for v in contents))
-        self.system.teachers=self.config["TEACHERS"]
-        self.system.share_groups=self.config["SHARE_GROUPS"].split(" ")
+            with open(self.config['SHARE_CONF']) as f:
+                contents = shlex.split(f.read(), True)
+                self.config.update(dict(v.split("=") for v in contents))
+        self.system.teachers = self.config["TEACHERS"]
+        self.system.share_groups = self.config["SHARE_GROUPS"].split(" ")
 
     def mount(self, groups=None):
         """Mount or remount the folders for the specified groups."""
@@ -166,25 +172,23 @@ class SharedFolders():
         self.save_config()
 
     def parse_mounts(self):
-        """Return a list of all bindfs mounts unset /home/Shared."""
-        mounts=[]
-        for line in open("/proc/mounts").readlines():
-            items=line.split()
-            # In 12.04: bindfs /home/Shared/a1 fuse.bindfs rw,... 0 0
-            # In 18.04: /home/Shared/users /home/Shared/a1 fuse rw,... 0 0
-            if not items[1].startswith(self.config["SHARE_DIR/"]) or \
-              items[2] not in ["fuse", "fuse.bindfs"]:
-                continue
-            mount={}
-            mount['point']=items[1]
-            mount['group']=mount['point'].partition(
-                self.config["SHARE_DIR/"])[2]
-            if mount['group'] not in self.system.share_groups:
-                continue
-            stat=os.stat(mount['point'])
-            mount['uid']=stat.st_uid
-            mount['gid']=stat.st_gid
-            mounts.append(mount)
+        """Return a list of all bindfs mounts under /home/Shared."""
+        mounts = []
+        with open("/proc/mounts") as f:
+            for line in f:
+                items = line.split()
+                if not items[1].startswith(self.config["SHARE_DIR/"]) or items[2] not in ["fuse", "fuse.bindfs"]:
+                    continue
+                mount = {
+                    'point': items[1],
+                    'group': items[1].partition(self.config["SHARE_DIR/"])[2]
+                }
+                if mount['group'] not in self.system.share_groups:
+                    continue
+                stat_info = os.stat(mount['point'])
+                mount['uid'] = stat_info.st_uid
+                mount['gid'] = stat_info.st_gid
+                mounts.append(mount)
         return mounts
 
     def remove(self, groups=None):
@@ -208,24 +212,24 @@ SHARE_GROUPS="%s"
     def unmount(self, groups=None):
         """Return the folders that were actually unmounted."""
         if groups is None or groups == []:
-            groups=self.system.share_groups
-        ret=[]
+            groups = self.system.share_groups
+        ret = []
         for mount in self.parse_mounts():
-            group=mount["group"]
+            group = mount["group"]
             if group not in groups:
                 continue
             ret.append(group)
-            point=mount["point"]
+            point = mount["point"]
             if subprocess.call(["umount", point]) == 0:
                 continue
-            sys.stderr.write("Cannot unmount %s, forcing unmount..." % point)
+            sys.stderr.write(f"Cannot unmount {point}, forcing unmount...\n")
             subprocess.call(["umount", "-l", point])
         return ret
 
     def valid(self, groups=None):
         """Return which of the specified groups are defined in /etc/group."""
         if groups is None or groups == []:
-            groups=self.system.share_groups
+            groups = self.system.share_groups
         return sorted(list(set(self.system.groups) & set(groups)))
 
 def usage():
