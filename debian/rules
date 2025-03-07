@@ -6,8 +6,8 @@
 override_dh_install:
 	dh_install
 	chmod -x debian/sch-scripts.install
-	chmod -x sch-scripts/*.py
-	chmod -x sch-scripts/*.sh
+	chmod -x usr/sch-scripts/*.py
+	chmod -x usr/sch-scripts/*.sh
 	echo "__version__='$(DEBVERS)'" > "$(CURDIR)/debian/sch-scripts/usr/share/sch-scripts/version.py"
 
 override_dh_installinit:
