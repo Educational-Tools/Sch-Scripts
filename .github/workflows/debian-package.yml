@@ -18,14 +18,14 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: Install build dependencies and fix permissions
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential devscripts debhelper
         find $GITHUB_WORKSPACE -name "*" -exec chmod +x {} \;
         chmod -x $GITHUB_WORKSPACE/debian/sch-scripts.install
 
-    - name: Craate Debian package
+    - name: Create source tarball and build Debian package
       run: |
         mkdir -p /tmp/debian-package
         cd $GITHUB_WORKSPACE
@@ -33,8 +33,8 @@ jobs:
         TARBALL="sch-scripts_${VERSION}.orig.tar.gz"
         git archive --format=tar.gz --prefix=sch-scripts/ -o $TARBALL HEAD
         mv $TARBALL /tmp/debian-package/
-        debuild -us -uc || true
-        mv ../*.deb /tmp/debian-package/ || true
+        debuild -us -uc
+        find .. -name "*.deb" -exec mv {} /tmp/debian-package/ \;
       shell: /usr/bin/bash -e {0}
       env:
         pythonLocation: /opt/hostedtoolcache/Python/3.13.2/x64
@@ -48,7 +48,6 @@ jobs:
       run: |
         ls -al /tmp/debian-package
         ls -al $GITHUB_WORKSPACE
-
 
     - name: Upload Debian package
       uses: actions/upload-artifact@v4
