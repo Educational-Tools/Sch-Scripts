@@ -27,22 +27,25 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         VERSION=$(dpkg-parsechangelog --show-field Version | sed 's/-.*//')
-        TARBALL="../sch-scripts_${VERSION}.orig.tar.gz"
+        TARBALL="sch-scripts_${VERSION}.orig.tar.gz"
         git archive --format=tar.gz --prefix=sch-scripts/ -o $TARBALL HEAD
+        mkdir -p /tmp/debian-package
+        mv $TARBALL /tmp/debian-package/
 
     - name: Build Debian package
       run: |
         cd $GITHUB_WORKSPACE
         debuild -us -uc
+        mv ../*.deb /tmp/debian-package/
 
     - name: List workspace contents
-      run: ls -al $GITHUB_WORKSPACE
+      run: ls -al /tmp/debian-package
 
     - name: Upload Debian package
       uses: actions/upload-artifact@v4
       with:
         name: sch-scripts-deb
-        path: $GITHUB_WORKSPACE/../*.deb
+        path: /tmp/debian-package/*.deb
         if-no-files-found: error
         compression-level: 6
         overwrite: false
