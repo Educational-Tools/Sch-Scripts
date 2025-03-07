@@ -42,7 +42,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: sch-scripts-deb
-        path: $GITHUB_WORKSPACE/*.deb
+        path: $GITHUB_WORKSPACE/../*.deb
         if-no-files-found: error
         compression-level: 6
         overwrite: false
