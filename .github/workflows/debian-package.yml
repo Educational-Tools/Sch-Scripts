@@ -48,6 +48,15 @@ jobs:
     - name: List workspace contents
       run: ls -al /tmp/debian-package
 
+    - name: Debug build process
+      run: |
+        echo "Listing contents of $GITHUB_WORKSPACE:"
+        ls -al $GITHUB_WORKSPACE
+        echo "Listing contents of parent directory:"
+        ls -al $GITHUB_WORKSPACE/..
+        echo "Listing contents of debian directory:"
+        ls -al $GITHUB_WORKSPACE/debian
+
     - name: Upload Debian package
       uses: actions/upload-artifact@v4
       with:
