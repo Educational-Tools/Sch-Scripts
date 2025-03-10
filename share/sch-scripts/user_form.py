@@ -17,7 +17,7 @@ class UserForm(object):
         self.system = system
         self.mode = None
         self.builder = Gtk.Builder()
-        self.builder.add_from_file('user_form.ui')
+        self.builder.add_from_file('ui/user_form.ui')
 
         self.roles = {i : config.parser.get('Roles', i).replace('$$teachers', self.system.teachers) for i in config.parser.options('Roles')}
         self.selected_role = None

@@ -19,7 +19,7 @@ class NewUsersDialog:
         self.sf = sf
 
         self.glade = Gtk.Builder()
-        self.glade.add_from_file('create_users.ui')
+        self.glade.add_from_file('ui/create_users.ui')
         self.glade.connect_signals(self)
         self.dialog = self.glade.get_object('create_users_dialog')
         self.user_tree = self.glade.get_object('user_treeview')

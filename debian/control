@@ -7,7 +7,7 @@ Standards-Version: 4.5.0
 Rules-Requires-Root: no
 Vcs-Git: https://github.com/Educational-Tools/Sch-Scripts.git
 Vcs-Browser: https://github.com/Educational-Tools/Sch-Scripts
-Homepage: https://sch-scripts.gitlab.io
+Homepage: https://github.com/Educational-Tools/Sch-Scripts
 
 Package: sch-scripts
 Architecture: all
@@ -23,8 +23,7 @@ Depends: ${misc:Depends},
  python3-gi,
  sch-archive-keyring,
  setpriv | util-linux (>= 2.32.1-0.2)
-Recommends: adobe-flashplugin,
- bindfs,
+Recommends: bindfs,
  dnsmasq,
  epoptes,
  ethtool,

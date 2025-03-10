@@ -26,7 +26,13 @@ exec_input() {
 }
 
 if [ ! -x /usr/share/sch-scripts/sch-scripts.py ]; then
-    echo "/usr/share/sch-scripts/sch-scripts.py not found" >&2
+    echo "/usr/share/sch-scripts/sch-scripts.py not found!" >&2
+    exit 1
+fi
+
+# Ensure the script runs with Python 3
+if ! command -v python3 > /dev/null 2>&1; then
+    echo "Python 3 is not installed!" >&2
     exit 1
 fi
 

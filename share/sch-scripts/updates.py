@@ -12,8 +12,7 @@ from _gi import Gtk
 class UpdatesDialog(object):
     def __init__(self, standalone=False):
         self.builder = Gtk.Builder()
-        self.builder.add_from_file('updates.ui')
-        self.standalone = standalone
+        self.builder.add_from_file('ui/updates.ui')
         self.cancelled = False
         self.wnd_updates = self.builder.get_object('wnd_updates')
         self.builder.connect_signals(self)

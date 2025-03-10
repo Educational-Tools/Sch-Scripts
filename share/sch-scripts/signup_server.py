@@ -156,7 +156,7 @@ class UI:
     def __init__(self, system):
         self.system = system
         self.builder = Gtk.Builder()
-        self.builder.add_from_file('signup_server.ui')
+        self.builder.add_from_file('ui/signup_server.ui')
         self.builder.connect_signals(self)
         self.requests_list = self.builder.get_object('requests_list')
         self.window = self.builder.get_object('requests_window')
@@ -304,7 +304,7 @@ class SettingsDialog:
     def __init__(self, system):
         self.system = system
         self.builder = Gtk.Builder()
-        self.builder.add_from_file('signup_settings.ui')
+        self.builder.add_from_file('ui/signup_settings.ui')
         self.builder.connect_signals(self)
         self.dlg = self.builder.get_object('dialog')
         self.groups_list = self.builder.get_object('groups_store')

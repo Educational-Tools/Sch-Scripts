@@ -17,7 +17,7 @@ class GroupForm(object):
         self.sf = sf
         #self.mode = None
         self.builder = Gtk.Builder()
-        self.builder.add_from_file('group_form.ui')
+        self.builder.add_from_file('ui/group_form.ui')
 
         self.dialog = self.builder.get_object('dialog')
         self.groupname = self.builder.get_object('name_entry')

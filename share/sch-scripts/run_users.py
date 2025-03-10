@@ -20,7 +20,7 @@ class RunUsers:
     def __init__(self, parent, users, schscripts=None):
         self.schscripts = schscripts
         builder = Gtk.Builder()
-        builder.add_from_file('run_users.ui')
+        builder.add_from_file('ui/run_users.ui')
         self.dialog = builder.get_object('dlg_run_users')
         self.dialog.set_transient_for(parent)
         self.txv_commands = builder.get_object('txv_commands')

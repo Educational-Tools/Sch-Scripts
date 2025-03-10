@@ -3,6 +3,11 @@
 # Copyright 2012-2022 the sch-scripts team, see AUTHORS
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+if [ "$(id -u)" -ne 0 ]; then
+    echo "This script must be run as root!" >&2
+    exit 1
+fi
+
 if [ ! -x /usr/share/sch-scripts/shared_folders.py ]; then
     echo "/usr/share/sch-scripts/shared_folders.py not found!" >&2
     exit 1

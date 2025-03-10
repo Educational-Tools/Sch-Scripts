@@ -14,7 +14,7 @@ import common
 
 class LtspInfo:
     def __init__(self, main_window):
-        gladefile = "ltsp_info.ui"
+        gladefile = "ui/ltsp_info.ui"
         self.builder = Gtk.Builder()
         self.builder.add_from_file(gladefile)
         self.builder.connect_signals(self)

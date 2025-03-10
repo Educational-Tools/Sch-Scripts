@@ -27,7 +27,7 @@ class ImportDialog:
             if u.uid is not None and u.is_system_user():
                 self.set.remove_user(u)
 
-        gladefile = "import_dialog.ui"
+        gladefile = "ui/import_dialog.ui"
         self.builder = Gtk.Builder()
         self.builder.add_from_file(gladefile)
         self.dialog = self.builder.get_object('import_dialog')
