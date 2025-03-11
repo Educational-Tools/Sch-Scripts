@@ -15,6 +15,7 @@ Pre-depends:
  epoptes,
  openssh-server
 Depends: ${misc:Depends},
+ bindfs,
  iputils-arping,
  libgtk-3-0,
  librsvg2-common,
@@ -22,8 +23,9 @@ Depends: ${misc:Depends},
  python3:any,
  python3-gi,
  sch-archive-keyring,
- setpriv | util-linux (>= 2.32.1-0.2)
-Recommends: bindfs,
+ setpriv | util-linux (>= 2.32.1-0.2),
+ dconf
+Recommends: ${misc:Recommends},
  dnsmasq,
  epoptes,
  ethtool,

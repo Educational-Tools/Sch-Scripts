@@ -57,7 +57,9 @@ purge() {
     # Restore all the files that were diverted by sch-scripts
     dpkg-divert --list sch-scripts \
     | while read -r temp temp file temp; do
-        dpkg-divert --package sch-scripts --rename --remove "$file"
+        if dpkg-divert --list | grep -q "$file"; then
+            dpkg-divert --package sch-scripts --rename --remove "$file"
+        fi
     done
 
     examples="
