@@ -16,7 +16,7 @@ Options:
                    that it has access to some common shell functions
 
 Available internal commands:
-    sch_keyring    Add the ts.sch.gr repositories to apt sources
+    # sch_keyring    Add the ts.sch.gr repositories to apt sources
     sch_scripts    Install sch-scripts to make an LTSP server
 EOF
 }
@@ -44,7 +44,8 @@ main() {
         bold "Γίνεται εκτέλεση της εντολής: $title $*"
         . "$script"
         ;;
-    sch_keyring | sch_scripts)
+    # sch_keyring | 
+    sch_scripts)
         # Internal commands
         if [ "$(id -u)" -ne 0 ]; then
             bold "Για να γίνει προσθήκη αποθετηρίων απαιτούνται δικαιώματα διαχειριστή.
@@ -191,36 +192,37 @@ re() {
     "$@" || die "Η εντολή απέτυχε: $*"
 }
 
-sch_keyring() {
-    # Ubuntu GNOME installations may lack universe
-    if [ -x /usr/bin/add-apt-repository ] &&
-        [ -f /usr/share/xsessions/ubuntu.desktop ]; then
-        if ! apt-cache policy | grep -q universe; then
-            bold "Γίνεται προσθήκη του αποθετηρίου universe του Ubuntu"
-            re add-apt-repository -ny universe
-        fi
-    fi
+# Commenting out the sch_keyring function
+# sch_keyring() {
+#     # Ubuntu GNOME installations may lack universe
+#     if [ -x /usr/bin/add-apt-repository ] &&
+#         [ -f /usr/share/xsessions/ubuntu.desktop ]; then
+#         if ! apt-cache policy | grep -q universe; then
+#             bold "Γίνεται προσθήκη του αποθετηρίου universe του Ubuntu"
+#             re add-apt-repository -ny universe
+#         fi
+#     fi
 
-    bold "Γίνεται εγκατάσταση των αποθετηρίων της Τεχνικής Στήριξης ΣΕΠΕΗΥ"
-    re wget -q https://ts.sch.gr/repo/sch-scripts/sch-archive-keyring/ -O /tmp/sch-archive-keyring.deb
-    re dpkg -i /tmp/sch-archive-keyring.deb
-    # In 18.04, add the LTSP PPA to provide the new sch-scripts/ltsp versions
-    if [ "$1" != "old" ] &&
-        grep -q bionic /etc/apt/sources.list.d/sch-archive-keyring.list &&
-        ! grep -qr "http://ppa.launchpad.net/ltsp/ppa/ubuntu" /etc/apt/sources.list*; then
-        bold "Προστίθεται και το αποθετήριο του νέου LTSP για το Ubuntu 18.04"
-        echo "deb http://ppa.launchpad.net/ltsp/ppa/ubuntu bionic main #Αποθετήριο νέου LTSP για Ubuntu 18.04" \
-            >>/etc/apt/sources.list.d/sch-archive-keyring.list
-    fi
+#     bold "Γίνεται εγκατάσταση των αποθετηρίων της Τεχνικής Στήριξης ΣΕΠΕΗΥ"
+#     re wget -q https://ts.sch.gr/repo/sch-scripts/sch-archive-keyring/ -O /tmp/sch-archive-keyring.deb
+#     re dpkg -i /tmp/sch-archive-keyring.deb
+#     # In 18.04, add the LTSP PPA to provide the new sch-scripts/ltsp versions
+#     if [ "$1" != "old" ] &&
+#         grep -q bionic /etc/apt/sources.list.d/sch-archive-keyring.list &&
+#         ! grep -qr "http://ppa.launchpad.net/ltsp/ppa/ubuntu" /etc/apt/sources.list*; then
+#         bold "Προστίθεται και το αποθετήριο του νέου LTSP για το Ubuntu 18.04"
+#         echo "deb http://ppa.launchpad.net/ltsp/ppa/ubuntu bionic main #Αποθετήριο νέου LTSP για Ubuntu 18.04" \
+#             >>/etc/apt/sources.list.d/sch-archive-keyring.list
+#     fi
 
-    bold "Γίνεται ενημέρωση των διαθέσιμων πακέτων"
-    apt-get update
-}
+#     bold "Γίνεται ενημέρωση των διαθέσιμων πακέτων"
+#     apt-get update
+# }
 
 sch_scripts() {
     local packages
 
-    sch_keyring "$@"
+    # sch_keyring "$@"
     if [ -x /usr/bin/mate-session ]; then
         packages=$(dpkg-query -W -f='${Package} ${Version}\n' arctica-greeter-guest-session ayatana-indicator-application evolution-common indicator-application ipp-usb mate-hud 2>/dev/null | awk '$2 { print $1 }') || true
         if [ -n "$packages" ]; then
