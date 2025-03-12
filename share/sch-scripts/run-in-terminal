@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 usage() {
-    # Display usage information
     cat <<EOF
 Usage: $0 [OPTIONS] [COMMAND]
 
@@ -29,8 +28,8 @@ main() {
         xmodmap -n >/dev/null 2>&1; then
         title=${1##*/}
         case "$title" in
-        -s | --source) title=${2##*/} ;;  # Set title based on the script name
-        '') title=${0##*/} ;;  # Default title to the script name
+        -s | --source) title=${2##*/} ;;
+        '') title=${0##*/} ;;
         esac
         SPAWNED_TERM=true exec x-terminal-emulator -T "$title" -e sh "$0" "$@"
     fi
@@ -40,56 +39,55 @@ main() {
     -s | --source)
         script="$2"
         shift 2
-        test -f "$script" || die "Script not found: $script"  # Check if the script exists
+        test -f "$script" || die "Script not found: $script"
         title=${script##*/}
-        bold "Γίνεται εκτέλεση της εντολής: $title $*"  # Print the command being executed
-        . "$script"  # Source the script
+        bold "Γίνεται εκτέλεση της εντολής: $title $*"
+        . "$script"
         ;;
     sch_keyring | sch_scripts)
         # Internal commands
-        if [ "$(id -u)" -ne 0 ]; then  # Check if the user is root
+        if [ "$(id -u)" -ne 0 ]; then
             bold "Για να γίνει προσθήκη αποθετηρίων απαιτούνται δικαιώματα διαχειριστή.
 Θα χρειαστεί να εισάγετε τον κωδικό πρόσβασης του λογαριασμού σας."
-            exec sudo sh "$0" "$@"  # Re-run the script with sudo
+            exec sudo sh "$0" "$@"
         fi
         title="Installing $1"
-        printf "\033]0;%s\a" "$title"  # Set the terminal title
-        "$@"  # Execute the command
-        pause_exit $?  # Pause before exiting
+        printf "\033]0;%s\a" "$title"
+        "$@"
+        pause_exit $?
         ;;
     '')
-        usage >&2  # Display usage information if no command is provided
+        usage >&2
         pause_exit 1
         ;;
     *)
         # If we didn't spawn a terminal, just exec the command
         test "$SPAWNED_TERM" != true && exec "$@"
         title=$*
-        bold "Γίνεται εκτέλεση της εντολής: $*"  # Print the command being executed
+        bold "Γίνεται εκτέλεση της εντολής: $*"
         # Try to set the terminal title
         printf "\033]0;%s\a" "$title"
-        "$@"  # Execute the command
+        "$@"
         ;;
     esac
     ret=$?
     if [ $ret -eq 0 ]; then
         bold "
-Η εντολή '$title' ολοκληρώθηκε με επιτυχία."  # Print success message
+Η εντολή '$title' ολοκληρώθηκε με επιτυχία."
     else
         bold "
-Η εντολή '$title' απέτυχε με κωδικό σφάλματος $ret."  # Print failure message
+Η εντολή '$title' απέτυχε με κωδικό σφάλματος $ret."
     fi
-    pause_exit "$ret"  # Pause before exiting
+    pause_exit "$ret"
 }
 
 bold() {
-    # Print text in bold
     if [ -z "$printbold_first_time" ]; then
         printbold_first_time=true
-        bold_face=$(tput bold 2>/dev/null) || true  # Get the bold face
-        normal_face=$(tput sgr0 2>/dev/null) || true  # Get the normal face
+        bold_face=$(tput bold 2>/dev/null) || true
+        normal_face=$(tput sgr0 2>/dev/null) || true
     fi
-    echo "${bold_face}$*${normal_face}"  # Print the text in bold
+    echo "${bold_face}$*${normal_face}"
 }
 
 # For the external tools we need that are also provided by busybox,
@@ -98,7 +96,7 @@ bold() {
 busybox_fallbacks() {
     local busybox tool
 
-    busybox=$(command -v busybox)  # Find the busybox command
+    busybox=$(command -v busybox)
     # Ubuntu chroots ship with a "busybox-initramfs" minimal package
     if [ -z "$busybox" ] && [ -x /usr/lib/initramfs-tools/bin/busybox ]; then
         busybox=/usr/lib/initramfs-tools/bin/busybox
@@ -126,12 +124,11 @@ busybox_fallbacks() {
 confirm() {
     local answer
 
-    # Prompt the user for confirmation
     printf "%s" "$1"
     read -r answer
     test -n "$answer" || answer="true"
     if ! is_true "$answer"; then
-        echo "Ακυρώθηκε από το χρήστη." >&2  # Print cancellation message
+        echo "Ακυρώθηκε από το χρήστη." >&2
         pause_exit 2
     fi
 }
@@ -139,7 +136,7 @@ confirm() {
 # Output a message to stderr and abort execution
 die() {
     log "$@"
-    bold "ERROR in ${0##*/}:" >&2  # Print error message
+    bold "ERROR in ${0##*/}:" >&2
     echo "$@" >&2
     pause_exit 1
 }
@@ -177,14 +174,12 @@ is_true() {
 }
 
 log() {
-    # Log a message to syslog
     logger -t sch-scripts -p syslog.err "$@"
 }
 
 pause_exit() {
     local _dummy
 
-    # Pause before exiting if a terminal was spawned
     if [ "$SPAWNED_TERM" = true ]; then
         printf "Πατήστε [Enter] για να κλείσετε το παρόν παράθυρο."
         read -r _dummy
@@ -193,7 +188,6 @@ pause_exit() {
 }
 
 re() {
-    # Run a command and abort if it fails
     "$@" || die "Η εντολή απέτυχε: $*"
 }
 
@@ -280,7 +274,6 @@ EOF
 }
 
 warn() {
-    # Print a warning message to stderr
     echo "$@" >&2
 }
 
