@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 usage() {
+    # Display usage information
     cat <<EOF
 Usage: $0 [OPTIONS] [COMMAND]
 
@@ -16,7 +17,7 @@ Options:
                    that it has access to some common shell functions
 
 Available internal commands:
-    # sch_keyring    Add the ts.sch.gr repositories to apt sources
+    sch_keyring    Add the ts.sch.gr repositories to apt sources
     sch_scripts    Install sch-scripts to make an LTSP server
 EOF
 }
@@ -28,8 +29,8 @@ main() {
         xmodmap -n >/dev/null 2>&1; then
         title=${1##*/}
         case "$title" in
-        -s | --source) title=${2##*/} ;;
-        '') title=${0##*/} ;;
+        -s | --source) title=${2##*/} ;;  # Set title based on the script name
+        '') title=${0##*/} ;;  # Default title to the script name
         esac
         SPAWNED_TERM=true exec x-terminal-emulator -T "$title" -e sh "$0" "$@"
     fi
@@ -39,56 +40,56 @@ main() {
     -s | --source)
         script="$2"
         shift 2
-        test -f "$script" || die "Script not found: $script"
+        test -f "$script" || die "Script not found: $script"  # Check if the script exists
         title=${script##*/}
-        bold "Γίνεται εκτέλεση της εντολής: $title $*"
-        . "$script"
+        bold "Γίνεται εκτέλεση της εντολής: $title $*"  # Print the command being executed
+        . "$script"  # Source the script
         ;;
-    # sch_keyring | 
-    sch_scripts)
+    sch_keyring | sch_scripts)
         # Internal commands
-        if [ "$(id -u)" -ne 0 ]; then
+        if [ "$(id -u)" -ne 0 ]; then  # Check if the user is root
             bold "Για να γίνει προσθήκη αποθετηρίων απαιτούνται δικαιώματα διαχειριστή.
 Θα χρειαστεί να εισάγετε τον κωδικό πρόσβασης του λογαριασμού σας."
-            exec sudo sh "$0" "$@"
+            exec sudo sh "$0" "$@"  # Re-run the script with sudo
         fi
         title="Installing $1"
-        printf "\033]0;%s\a" "$title"
-        "$@"
-        pause_exit $?
+        printf "\033]0;%s\a" "$title"  # Set the terminal title
+        "$@"  # Execute the command
+        pause_exit $?  # Pause before exiting
         ;;
     '')
-        usage >&2
+        usage >&2  # Display usage information if no command is provided
         pause_exit 1
         ;;
     *)
         # If we didn't spawn a terminal, just exec the command
         test "$SPAWNED_TERM" != true && exec "$@"
         title=$*
-        bold "Γίνεται εκτέλεση της εντολής: $*"
+        bold "Γίνεται εκτέλεση της εντολής: $*"  # Print the command being executed
         # Try to set the terminal title
         printf "\033]0;%s\a" "$title"
-        "$@"
+        "$@"  # Execute the command
         ;;
     esac
     ret=$?
     if [ $ret -eq 0 ]; then
         bold "
-Η εντολή '$title' ολοκληρώθηκε με επιτυχία."
+Η εντολή '$title' ολοκληρώθηκε με επιτυχία."  # Print success message
     else
         bold "
-Η εντολή '$title' απέτυχε με κωδικό σφάλματος $ret."
+Η εντολή '$title' απέτυχε με κωδικό σφάλματος $ret."  # Print failure message
     fi
-    pause_exit "$ret"
+    pause_exit "$ret"  # Pause before exiting
 }
 
 bold() {
+    # Print text in bold
     if [ -z "$printbold_first_time" ]; then
         printbold_first_time=true
-        bold_face=$(tput bold 2>/dev/null) || true
-        normal_face=$(tput sgr0 2>/dev/null) || true
+        bold_face=$(tput bold 2>/dev/null) || true  # Get the bold face
+        normal_face=$(tput sgr0 2>/dev/null) || true  # Get the normal face
     fi
-    echo "${bold_face}$*${normal_face}"
+    echo "${bold_face}$*${normal_face}"  # Print the text in bold
 }
 
 # For the external tools we need that are also provided by busybox,
@@ -97,7 +98,7 @@ bold() {
 busybox_fallbacks() {
     local busybox tool
 
-    busybox=$(command -v busybox)
+    busybox=$(command -v busybox)  # Find the busybox command
     # Ubuntu chroots ship with a "busybox-initramfs" minimal package
     if [ -z "$busybox" ] && [ -x /usr/lib/initramfs-tools/bin/busybox ]; then
         busybox=/usr/lib/initramfs-tools/bin/busybox
@@ -125,11 +126,12 @@ busybox_fallbacks() {
 confirm() {
     local answer
 
+    # Prompt the user for confirmation
     printf "%s" "$1"
     read -r answer
     test -n "$answer" || answer="true"
     if ! is_true "$answer"; then
-        echo "Ακυρώθηκε από το χρήστη." >&2
+        echo "Ακυρώθηκε από το χρήστη." >&2  # Print cancellation message
         pause_exit 2
     fi
 }
@@ -137,7 +139,7 @@ confirm() {
 # Output a message to stderr and abort execution
 die() {
     log "$@"
-    bold "ERROR in ${0##*/}:" >&2
+    bold "ERROR in ${0##*/}:" >&2  # Print error message
     echo "$@" >&2
     pause_exit 1
 }
@@ -175,12 +177,14 @@ is_true() {
 }
 
 log() {
+    # Log a message to syslog
     logger -t sch-scripts -p syslog.err "$@"
 }
 
 pause_exit() {
     local _dummy
 
+    # Pause before exiting if a terminal was spawned
     if [ "$SPAWNED_TERM" = true ]; then
         printf "Πατήστε [Enter] για να κλείσετε το παρόν παράθυρο."
         read -r _dummy
@@ -189,31 +193,31 @@ pause_exit() {
 }
 
 re() {
+    # Run a command and abort if it fails
     "$@" || die "Η εντολή απέτυχε: $*"
 }
 
-# Commenting out the sch_keyring function
-# sch_keyring() {
-#     # Ubuntu GNOME installations may lack universe
-#     if [ -x /usr/bin/add-apt-repository ] &&
-#         [ -f /usr/share/xsessions/ubuntu.desktop ]; then
-#         if ! apt-cache policy | grep -q universe; then
-#             bold "Γίνεται προσθήκη του αποθετηρίου universe του Ubuntu"
-#             re add-apt-repository -ny universe
-#         fi
-#     fi
+sch_keyring() {
+    # Ubuntu GNOME installations may lack universe
+    if [ -x /usr/bin/add-apt-repository ] &&
+        [ -f /usr/share/xsessions/ubuntu.desktop ]; then
+        if ! apt-cache policy | grep -q universe; then
+            bold "Γίνεται προσθήκη του αποθετηρίου universe του Ubuntu"
+            re add-apt-repository -ny universe
+        fi
+    fi
 
-#     bold "Γίνεται εγκατάσταση των αποθετηρίων της Τεχνικής Στήριξης ΣΕΠΕΗΥ"
-#     re wget -q https://ts.sch.gr/repo/sch-scripts/sch-archive-keyring/ -O /tmp/sch-archive-keyring.deb
-#     re dpkg -i /tmp/sch-archive-keyring.deb
-#     # In 18.04, add the LTSP PPA to provide the new sch-scripts/ltsp versions
-#     if [ "$1" != "old" ] &&
-#         grep -q bionic /etc/apt/sources.list.d/sch-archive-keyring.list &&
-#         ! grep -qr "http://ppa.launchpad.net/ltsp/ppa/ubuntu" /etc/apt/sources.list*; then
-#         bold "Προστίθεται και το αποθετήριο του νέου LTSP για το Ubuntu 18.04"
-#         echo "deb http://ppa.launchpad.net/ltsp/ppa/ubuntu bionic main #Αποθετήριο νέου LTSP για Ubuntu 18.04" \
-#             >>/etc/apt/sources.list.d/sch-archive-keyring.list
-#     fi
+    bold "Γίνεται εγκατάσταση των αποθετηρίων της Τεχνικής Στήριξης ΣΕΠΕΗΥ"
+    re wget -q https://ts.sch.gr/repo/sch-scripts/sch-archive-keyring/ -O /tmp/sch-archive-keyring.deb
+    re dpkg -i /tmp/sch-archive-keyring.deb
+    # In 18.04, add the LTSP PPA to provide the new sch-scripts/ltsp versions
+    if [ "$1" != "old" ] &&
+        grep -q bionic /etc/apt/sources.list.d/sch-archive-keyring.list &&
+        ! grep -qr "http://ppa.launchpad.net/ltsp/ppa/ubuntu" /etc/apt/sources.list*; then
+        bold "Προστίθεται και το αποθετήριο του νέου LTSP για το Ubuntu 18.04"
+        echo "deb http://ppa.launchpad.net/ltsp/ppa/ubuntu bionic main #Αποθετήριο νέου LTSP για Ubuntu 18.04" \
+            >>/etc/apt/sources.list.d/sch-archive-keyring.list
+    fi
 
     bold "Γίνεται ενημέρωση των διαθέσιμων πακέτων"
     apt-get update
@@ -222,7 +226,7 @@ re() {
 sch_scripts() {
     local packages
 
-    # sch_keyring "$@"
+    sch_keyring "$@"
     if [ -x /usr/bin/mate-session ]; then
         packages=$(dpkg-query -W -f='${Package} ${Version}\n' arctica-greeter-guest-session ayatana-indicator-application evolution-common indicator-application ipp-usb mate-hud 2>/dev/null | awk '$2 { print $1 }') || true
         if [ -n "$packages" ]; then
@@ -276,6 +280,7 @@ EOF
 }
 
 warn() {
+    # Print a warning message to stderr
     echo "$@" >&2
 }
 
