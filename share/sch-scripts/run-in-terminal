@@ -215,9 +215,9 @@ re() {
 #             >>/etc/apt/sources.list.d/sch-archive-keyring.list
 #     fi
 
-#     bold "Γίνεται ενημέρωση των διαθέσιμων πακέτων"
-#     apt-get update
-# }
+    bold "Γίνεται ενημέρωση των διαθέσιμων πακέτων"
+    apt-get update
+}
 
 sch_scripts() {
     local packages
