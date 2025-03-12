@@ -14,7 +14,7 @@ Architecture: all
 Pre-depends:
  epoptes,
  openssh-server
-Depends: ${misc:Depends},
+Depends:
  bindfs,
  iputils-arping,
  libgtk-3-0,
