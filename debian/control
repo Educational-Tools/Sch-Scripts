@@ -18,7 +18,7 @@ openssh-server
 Depends:
 python3:any,
 python3-gi,
-python3-pip,
+python3-pip
 
 Description: Διαχείριση ΣΕΠΕΗΥ
 Παρέχει ένα σύνολο εξαρτήσεων για την αυτοματοποίηση της εγκατάστασης
