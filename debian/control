@@ -8,18 +8,15 @@ Rules-Requires-Root: yes
 Vcs-Git: https://github.com/Educational-Tools/Sch-Scripts.git
 Vcs-Browser: https://github.com/Educational-Tools/Sch-Scripts
 Homepage: https://github.com/Educational-Tools/Sch-Scripts
-
 Package: sch-scripts
 Architecture: all
 Pre-depends:
 epoptes,
 openssh-server
-
 Depends:
 python3:any,
 python3-gi,
 python3-pip
-
 Description: Διαχείριση ΣΕΠΕΗΥ
 Παρέχει ένα σύνολο εξαρτήσεων για την αυτοματοποίηση της εγκατάστασης
 σχολικών εργαστηρίων, και ένα γραφικό περιβάλλον που υποστηρίζει διαχείριση
