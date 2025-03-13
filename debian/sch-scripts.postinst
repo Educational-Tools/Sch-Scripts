@@ -16,8 +16,6 @@ set -e
 
 # $1 = version of the package being upgraded.
 install() {
-    # Install soft dependencies
-    install_soft_dependencies
     # Call initial-setup.sh mainly to create the teachers group, but some
     # packages might not be configured yet and the user may need to rerun it
     /usr/share/sch-scripts/initial-setup.sh || true

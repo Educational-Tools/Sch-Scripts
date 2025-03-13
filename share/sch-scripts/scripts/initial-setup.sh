@@ -18,7 +18,7 @@ install_dependencies() {
         sleep 1
     done
     apt-get update
-    apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool hardinfo ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
+    apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
         echo "Error: Failed to install soft dependencies."
         exit 1
     }
