@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Dimitrys <demetresmeliates@gmail.com>
 Build-Depends: debhelper (>= 10)
 Standards-Version: 4.5.0
-Rules-Requires-Root: no
+Rules-Requires-Root: yes
 Vcs-Git: https://github.com/Educational-Tools/Sch-Scripts.git
 Vcs-Browser: https://github.com/Educational-Tools/Sch-Scripts
 Homepage: https://github.com/Educational-Tools/Sch-Scripts
@@ -23,12 +23,11 @@ librsvg2-common,
 policykit-1,
 python3:any,
 python3-gi,
-setpriv | util-linux (>= 2.32.1-0.2),
+util-linux,
 dnsmasq,
 ethtool,
 hardinfo,
 ltsp,
-ltsp-binaries,
 net-tools,
 nfs-kernel-server,
 p7zip-rar,

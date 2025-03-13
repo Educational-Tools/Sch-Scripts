@@ -97,7 +97,7 @@ class UserForm(object):
             sys.exit(1)
 
         self.builder = Gtk.Builder()
-        self.builder.add_from_file('signup_form.ui')
+        self.builder.add_from_file('ui/signup_form.ui')
         self.dialog = self.builder.get_object('dialog')
         self.username_combo = self.builder.get_object('username_combo')
         self.username_entry = self.username_combo.get_child()
