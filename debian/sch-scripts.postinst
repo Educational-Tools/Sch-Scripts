@@ -2,15 +2,6 @@
 
 set -e
 
-# Install "soft" dependencies required by initial-setup.sh
-install_soft_dependencies() {
-    apt-get update
-    apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool hardinfo ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
-        echo "Error: Failed to install soft dependencies."
-        exit 1
-    }
-}
-
 # summary of how this script can be called:
 #        * <postinst> `configure' <most-recently-configured-version>
 #        * <old-postinst> `abort-upgrade' <new version>

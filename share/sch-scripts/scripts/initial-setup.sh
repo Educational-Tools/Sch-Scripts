@@ -11,7 +11,19 @@ _PROMPT_AFTER="19.0"
 
 . /usr/share/sch-scripts/common.sh
 
-# Function to start shared-folders.service
+install_dependencies() {
+    # Wait for apt lock to be released
+    while ! flock -w 10 /var/lib/dpkg/lock-frontend -c :; do
+        echo "Waiting for apt lock to be released..."
+        sleep 1
+    done
+    apt-get update
+    apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool hardinfo ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
+        echo "Error: Failed to install soft dependencies."
+        exit 1
+    }
+}
+
 start_shared_folders_service() {
     echo "Starting shared-folders.service..."
     systemctl start shared-folders.service || {
@@ -25,11 +37,11 @@ start_shared_folders_service() {
 main() {
     cmdline "$@"
     # configure_various goes first as it backgrounds a DNS task
+    install_dependencies
     configure_various
     configure_ltsp
     configure_symlinks
     configure_teachers
-    # Start shared-folders.service
     start_shared_folders_service
 }
 
