@@ -24,16 +24,6 @@ install_dependencies() {
     }
 }
 
-start_shared_folders_service() {
-    echo "Starting shared-folders.service..."
-    systemctl start shared-folders.service || {
-        echo "Error: Failed to start shared-folders.service."
-        exit 1
-    }
-    echo "shared-folders.service started successfully."
-    systemctl status shared-folders.service
-}
-
 main() {
     cmdline "$@"
     # configure_various goes first as it backgrounds a DNS task
@@ -109,4 +99,14 @@ configure_teachers() {
             adduser "$administrator" "$TEACHERS"
         fi
     fi
+}
+
+start_shared_folders_service() {
+    echo "Starting shared-folders.service..."
+    systemctl start shared-folders.service || {
+        echo "Error: Failed to start shared-folders.service."
+        exit 1
+    }
+    echo "shared-folders.service started successfully."
+    systemctl status shared-folders.service
 }

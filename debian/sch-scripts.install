@@ -1,4 +1,4 @@
-etc/*                   etc/
-lib/*                   lib/
-share/*                 usr/share/
-sbin/*                  usr/sbin/
+etc/*                                    etc/
+lib/*                                    lib/
+share/*                                  usr/share/
+sbin/*                                   usr/sbin/
