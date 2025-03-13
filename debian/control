@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Dimitrys <demetresmeliates@gmail.com>
 Build-Depends: debhelper (>= 10)
 Standards-Version: 4.5.0
-Rules-Requires-Root: yes
+Rules-Requires-Root: binary-targets
 Vcs-Git: https://github.com/Educational-Tools/Sch-Scripts.git
 Vcs-Browser: https://github.com/Educational-Tools/Sch-Scripts
 Homepage: https://github.com/Educational-Tools/Sch-Scripts
