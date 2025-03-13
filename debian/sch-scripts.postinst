@@ -18,7 +18,7 @@ set -e
 install() {
     # Call initial-setup.sh mainly to create the teachers group, but some
     # packages might not be configured yet and the user may need to rerun it
-    /usr/share/sch-scripts/initial-setup.sh --no-prompt || true
+    /usr/share/sch-scripts/initial-setup.sh || true
 }
 
 case "$1" in

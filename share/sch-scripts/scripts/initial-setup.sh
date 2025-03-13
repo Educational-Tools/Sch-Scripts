@@ -13,11 +13,29 @@ _PROMPT_AFTER="19.0"
 
 main() {
     cmdline "$@"
-    # configure_various goes first as it backgrounds a DNS task
     configure_various
     configure_ltsp
     configure_symlinks
     configure_teachers
+    install_dependencies
+    start_shared_folders_service
+}
+
+# Function to install dependencies
+install_dependencies() {
+    echo "Γίνεται εγκατάσταση εξαρτήσεων..."
+    apt-get update && apt-get install -y openssh-server epoptes bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 python3 python3-gi util-linux python3-pip dnsmasq ethtool hardinfo ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
+        echo "Σφάλμα: Αποτυχία εγκατάστασης εξαρτήσεων."
+        exit 1
+    }
+    bold "Εξαρτήσεις εγκαταστάθηκαν με επιτυχία."
+}
+
+# Function to start shared-folders.service
+start_shared_folders_service() {
+    echo "Starting shared-folders.service..."
+    systemctl start shared-folders.service || echo "Error: Failed to start shared-folders.service. This might be because it is already started"
+    echo "shared-folders.service started."
 }
 
 cmdline() {

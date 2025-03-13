@@ -16,22 +16,9 @@ epoptes,
 openssh-server
 
 Depends:
-bindfs,
-iputils-arping,
-libgtk-3-0,
-librsvg2-common,
-policykit-1,
 python3:any,
 python3-gi,
-util-linux,
-dnsmasq,
-ethtool,
-hardinfo,
-ltsp,
-net-tools,
-nfs-kernel-server,
-p7zip-rar,
-squashfs-tools
+python3-pip,
 
 Description: Διαχείριση ΣΕΠΕΗΥ
 Παρέχει ένα σύνολο εξαρτήσεων για την αυτοματοποίηση της εγκατάστασης
