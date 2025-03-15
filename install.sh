@@ -24,15 +24,19 @@ DEST_ETC="/etc"
 DEST_LIB="/lib"
 DEST_SHARE="/usr/share"
 DEST_SBIN="/usr/sbin"
-DEST_SCRIPTS="/usr/share/sch-scripts"
+DEST_ROOT="/usr/share/sch-scripts"
 DEST_CONFIGS="/usr/share/sch-scripts/configs"
+DEST_UI="/usr/share/sch-scripts/ui"
+DEST_BINS="/usr/share/sch-scripts/scripts"
 
 PROJECT_ETC="etc"
 PROJECT_LIB="lib"
 PROJECT_SHARE="share"
 PROJECT_SBIN="sbin"
-PROJECT_SCRIPTS="share/sch-scripts"
+PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
+PROJECT_UI="share/sch-scripts/ui"
+PROJECT_BINS="share/sch-scripts/scripts"
 
 PACKAGE_ROOT="/usr/share/sch-scripts"
 
@@ -197,7 +201,7 @@ install_files() {
     echo "Moving files to their destinations..."
 
     # Create directories
-    mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_SCRIPTS" "$DEST_CONFIGS"
+    mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_ROOT" "$DEST_CONFIGS" "$DEST_UI" "$DEST_BINS"
 
     # Move files
     for file in "$PROJECT_ETC"/*; do
@@ -215,9 +219,12 @@ install_files() {
         install_path "$file" "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
     #Include the sch-scripts.py
-    for file in "$PROJECT_SCRIPTS"/*; do
-        backup_file "$DEST_SCRIPTS" "$file"
-        install_path "$file" "$DEST_SCRIPTS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    for file in "$PROJECT_ROOT"/*; do
+        # Exclude configs, ui and scripts directories
+        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then
+            backup_file "$DEST_ROOT" "$file"
+            install_path "$file" "$DEST_ROOT" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+        fi
     done
 
     for file in "$PROJECT_SBIN"/*; do
@@ -228,6 +235,16 @@ install_files() {
     for file in "$PROJECT_CONFIGS"/*; do
         backup_file "$DEST_CONFIGS" "$file"
         install_path "$file" "$DEST_CONFIGS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
+    #Include the ui files
+    for file in "$PROJECT_UI"/*; do
+        backup_file "$DEST_UI" "$file"
+        install_path "$file" "$DEST_UI" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
+    #Include the script files
+    for file in "$PROJECT_BINS"/*; do
+        backup_file "$DEST_BINS" "$file"
+        install_path "$file" "$DEST_BINS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     echo "Files moved successfully."
@@ -247,8 +264,12 @@ revert_files() {
     for file in "$PROJECT_SHARE"/*; do
         revert_file "$DEST_SHARE" "$file"
     done
-    for file in "$PROJECT_SCRIPTS"/*; do
-        revert_file "$DEST_SCRIPTS" "$file"
+    #Revert the sch-scripts files
+    for file in "$PROJECT_ROOT"/*; do
+        # Exclude configs, ui and scripts directories
+        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then
+            revert_file "$DEST_ROOT" "$file"
+        fi
     done
     for file in "$PROJECT_SBIN"/*; do
         revert_file "$DEST_SBIN" "$file"
@@ -256,6 +277,14 @@ revert_files() {
     #Revert configs
     for file in "$PROJECT_CONFIGS"/*; do
         revert_file "$DEST_CONFIGS" "$file"
+    done
+    #Revert ui
+    for file in "$PROJECT_UI"/*; do
+        revert_file "$DEST_UI" "$file"
+    done
+    #Revert scripts
+    for file in "$PROJECT_BINS"/*; do
+        revert_file "$DEST_BINS" "$file"
     done
 
     echo "File changes reverted successfully."
@@ -306,10 +335,21 @@ main() {
     fi
 
 }
-#Create the directory of configs
-mkdir -p "$PROJECT_CONFIGS"
-#Copy the ltsp config to config directory
-cp "$PROJECT_SCRIPTS/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
+#Create the directory of configs if it does not exist
+if [ ! -d "$PROJECT_CONFIGS" ]; then
+    mkdir -p "$PROJECT_CONFIGS"
+    #Copy the ltsp config to config directory
+    cp "$PROJECT_ROOT/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
+fi
+#Create the directory of UI if it does not exist
+if [ ! -d "$PROJECT_UI" ]; then
+    mkdir -p "$PROJECT_UI"
+fi
+#Create the directory of BINS if it does not exist
+if [ ! -d "$PROJECT_BINS" ]; then
+    mkdir -p "$PROJECT_BINS"
+fi
+
 #Execute the main
 main "$@"
 
