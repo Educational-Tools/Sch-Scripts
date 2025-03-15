@@ -20,7 +20,6 @@ set -e
 REVERT=false
 if [[ "$1" == "-u" ]]; then
     REVERT=true
-    shift # Remove -u from argument list
 fi
 
 # Define variables
@@ -197,15 +196,12 @@ prompt() {
 # This is the main
 main() {
     prompt "$@"
-    install_dependencies
     configure_ltsp
     configure_teachers
     start_shared_folders_service
 }
-
-# --- Dependency Installation/Removal ---
-
-if [[ "$REVERT" == false ]]; then
+# --- Install or Remove dependencies ---
+if [[ $REVERT == false ]]; then
     echo "Installing sch-scripts..."
     # Install dependencies
     install_dependencies
@@ -219,7 +215,7 @@ fi
 
 # --- File Movement/Revert ---
 
-if [[ "$REVERT" == false ]]; then
+if [[ $REVERT == false ]]; then
     echo "Moving files to their destinations..."
 
     # Create directories
@@ -277,7 +273,7 @@ fi
 
 # --- Configuration ---
 
-if [[ "$REVERT" == false ]]; then
+if [[ $REVERT == false ]]; then
 
     # This is the main
     main
@@ -289,7 +285,7 @@ fi
 
 # --- Final Message ---
 
-if [[ "$REVERT" == false ]]; then
+if [[ $REVERT == false ]]; then
     echo "Installation of sch-scripts completed successfully!"
 else
     echo "Revert of sch-scripts completed successfully!"
