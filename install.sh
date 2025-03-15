@@ -76,6 +76,25 @@ revert_file() {
     fi
 }
 
+# Install function (for directories and files)
+
+install_path() {
+    local source_path="$1"
+    local dest_path="$2"
+
+    if [[ -d "$source_path" ]]; then
+        # It's a directory, use -r to copy recursively
+        install -d -m 755 "$dest_path/$(basename "$source_path")"
+        install -r -m 644 "$source_path"/* "$dest_path/$(basename "$source_path")" || {
+          echo "Failed to copy directory."
+          exit 1
+        }
+    else
+        # It's a file
+        install -m 644 "$source_path" "$dest_path"
+    fi
+}
+
 # --- Dependency Installation/Removal ---
 
 if [[ "$REVERT" == false ]]; then
@@ -110,22 +129,22 @@ if [[ "$REVERT" == false ]]; then
     # Move files
     for file in "$PROJECT_ETC"/*; do
         backup_file "$DEST_ETC" "$file"
-        install -m 644 "$file" "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     for file in "$PROJECT_LIB"/*; do
         backup_file "$DEST_LIB" "$file"
-        install -m 644 "$file" "$DEST_LIB" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_LIB" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     for file in "$PROJECT_SHARE"/*; do
         backup_file "$DEST_SHARE" "$file"
-        install -m 644 "$file" "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     for file in "$PROJECT_SBIN"/*; do
         backup_file "$DEST_SBIN" "$file"
-        install -m 755 "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     echo "Files moved successfully."
