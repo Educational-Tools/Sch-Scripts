@@ -29,6 +29,11 @@ DEST_LIB="/lib"
 DEST_SHARE="/usr/share"
 DEST_SBIN="/usr/sbin"
 
+PROJECT_ETC="etc"
+PROJECT_LIB="lib"
+PROJECT_SHARE="share"
+PROJECT_SBIN="sbin"
+
 PACKAGE_ROOT="/usr/share/sch-scripts"
 
 # Dependencies
@@ -45,18 +50,22 @@ ERROR_START_SERVICES="Error: Failed to start required services."
 # Backup and Revert Functions
 
 backup_file() {
-    local source_file="$1"
-    local bak_file="$source_file.bak"
+    local dest_dir="$1"
+    local source_file="$2"
+    local dest_file="$dest_dir/$(basename "$source_file")"
+    local bak_file="$dest_file.bak"
 
     # Check if the destination file exists
-    if [[ -f "$source_file" ]]; then
-        echo "Backing up: $source_file to $bak_file"
-        mv "$source_file" "$bak_file"
+    if [[ -f "$dest_file" ]]; then
+        echo "Backing up: $dest_file to $bak_file"
+        mv "$dest_file" "$bak_file"
     fi
 }
 
 revert_file() {
-    local file_path="$1"
+    local dest_dir="$1"
+    local source_file="$2"
+    local file_path="$dest_dir/$(basename "$source_file")"
     local bak_file="$file_path.bak"
 
     if [[ -f "$bak_file" ]]; then
@@ -99,27 +108,43 @@ if [[ "$REVERT" == false ]]; then
     mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN"
 
     # Move files
-    backup_file "$DEST_ETC/$(ls etc/*)"
-    install -m 644 etc/* "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    for file in "$PROJECT_ETC"/*; do
+        backup_file "$DEST_ETC" "$file"
+        install -m 644 "$file" "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
 
-    backup_file "$DEST_LIB/$(ls lib/*)"
-    install -m 644 lib/* "$DEST_LIB" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    for file in "$PROJECT_LIB"/*; do
+        backup_file "$DEST_LIB" "$file"
+        install -m 644 "$file" "$DEST_LIB" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
 
-    backup_file "$DEST_SHARE/$(ls share/*)"
-    install -m 644 share/* "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    for file in "$PROJECT_SHARE"/*; do
+        backup_file "$DEST_SHARE" "$file"
+        install -m 644 "$file" "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
 
-    backup_file "$DEST_SBIN/$(ls sbin/*)"
-    install -m 755 sbin/* "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    for file in "$PROJECT_SBIN"/*; do
+        backup_file "$DEST_SBIN" "$file"
+        install -m 755 "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
 
     echo "Files moved successfully."
 else
     echo "Reverting file changes..."
 
     # Revert files
-    revert_file "$DEST_ETC/$(ls etc/*)"
-    revert_file "$DEST_LIB/$(ls lib/*)"
-    revert_file "$DEST_SHARE/$(ls share/*)"
-    revert_file "$DEST_SBIN/$(ls sbin/*)"
+    for file in "$PROJECT_ETC"/*; do
+        revert_file "$DEST_ETC" "$file"
+    done
+    for file in "$PROJECT_LIB"/*; do
+        revert_file "$DEST_LIB" "$file"
+    done
+    for file in "$PROJECT_SHARE"/*; do
+        revert_file "$DEST_SHARE" "$file"
+    done
+    for file in "$PROJECT_SBIN"/*; do
+        revert_file "$DEST_SBIN" "$file"
+    done
 
     echo "File changes reverted successfully."
 fi
