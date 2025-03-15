@@ -83,9 +83,9 @@ install_path() {
     local dest_path="$2"
 
     if [[ -d "$source_path" ]]; then
-        # It's a directory, use -r to copy recursively
-        install -d -m 755 "$dest_path/$(basename "$source_path")"
-        install -r -m 644 "$source_path"/* "$dest_path/$(basename "$source_path")" || {
+        # It's a directory, use cp -r to copy recursively
+        mkdir -p "$dest_path/$(basename "$source_path")"
+        cp -r "$source_path"/* "$dest_path/$(basename "$source_path")" || {
           echo "Failed to copy directory."
           exit 1
         }
