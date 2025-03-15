@@ -16,16 +16,6 @@ fi
 # Set -e for immediate exit on errors
 set -e
 
-echo "Initial value of REVERT: $REVERT"
-
-# Check for revert argument
-if [[ "$1" == "-u" ]]; then
-    echo "Revert flag detected!"
-    REVERT=true
-fi
-
-echo "Value of REVERT after checking for -u: $REVERT"
-
 # Define variables
 DEST_ETC="/etc"
 DEST_LIB="/lib"
@@ -197,32 +187,8 @@ prompt() {
         "# This file is regenerated when /usr/share/sch-scripts/initial-setup.sh runs.\n\n# Remember the last version ran, to answer the --check parameter:\nLAST_VERSION=%s\n" "$_VERSION" >"$conf"
 }
 
-# This is the main
-main() {
-    prompt "$@"
-    configure_ltsp
-    configure_teachers
-    start_shared_folders_service
-}
-# --- Install or Remove dependencies ---
-echo "Entering dependency handling block."
-if [[ $REVERT == false ]]; then
-    echo "REVERT is false. Installing dependencies..."
-    # Install dependencies
-    install_dependencies
-    echo "Dependencies installed successfully."
-else
-    echo "REVERT is true. Removing dependencies..."
-    #Remove dependencies
-    remove_dependencies
-    echo "Dependencies removed successfully."
-fi
-
-# --- File Movement/Revert ---
-
-echo "Entering file handling block."
-if [[ $REVERT == false ]]; then
-    echo "REVERT is false. Moving files..."
+#install files
+install_files() {
     echo "Moving files to their destinations..."
 
     # Create directories
@@ -255,8 +221,10 @@ if [[ $REVERT == false ]]; then
     done
 
     echo "Files moved successfully."
-else
-    echo "REVERT is true. Reverting files..."
+}
+
+#revert files
+revert_files() {
     echo "Reverting file changes..."
 
     # Revert files
@@ -277,29 +245,44 @@ else
     done
 
     echo "File changes reverted successfully."
-fi
+}
 
-# --- Configuration ---
+# This is the main
+main() {
+    REVERT=false
+    if [[ "$1" == "-u" ]]; then
+        REVERT=true
+    fi
+    echo "Value of REVERT inside main: $REVERT"
+    
+    if [[ $REVERT == false ]]; then
+        echo "Installing sch-scripts..."
+        # Install dependencies
+        install_dependencies
+        echo "Dependencies installed successfully."
+        #install files
+        install_files
+        # This is the prompt
+        prompt "$@"
+        #This are the configurations
+        configure_ltsp
+        configure_teachers
+        start_shared_folders_service
 
-echo "Entering configuration block."
-if [[ $REVERT == false ]]; then
-    echo "REVERT is false. Configuring sch-scripts..."
+        echo "Installation of sch-scripts completed successfully!"
+    else
+        echo "Removing sch-scripts..."
+        #Remove dependencies
+        remove_dependencies
+        echo "Dependencies removed successfully."
+        #revert files
+        revert_files
 
-    # This is the main
-    main
+        echo "Revert of sch-scripts completed successfully!"
+    fi
 
-    echo "sch-scripts configuration completed successfully."
-else
-    echo "REVERT is true. Skipping sch-scripts configuration..."
-fi
-
-# --- Final Message ---
-
-echo "Reaching final message block."
-if [[ $REVERT == false ]]; then
-    echo "Installation of sch-scripts completed successfully!"
-else
-    echo "Revert of sch-scripts completed successfully!"
-fi
+}
+#Execute the main
+main "$@"
 
 exit 0
