@@ -95,7 +95,11 @@ install_path() {
         }
     else
         # It's a file
-        install -o root -g root -m 644 "$source_path" "$dest_path"
+        if [[ "$dest_path" == "$DEST_SBIN" ]]; then
+            install -o root -g root -m 0755 "$source_path" "$dest_path"
+        else
+            install -o root -g root -m 0644 "$source_path" "$dest_path"
+        fi
     fi
 }
 
@@ -186,11 +190,6 @@ prompt() {
     local conf _dummy
 
     conf=/var/lib/sch-scripts/initial-setup.conf
-    if [ "$1" != "--no-prompt" ]; then
-        printf "Θα εκτελεστούν κάποιες ενέργειες αρχικοποίησης των sch-scripts.\nΠατήστε [Enter] για συνέχεια ή Ctrl+C για εγκατάλειψη: "
-        # shellcheck disable=SC2034
-        read -r _dummy
-    fi
     mkdir -p "${conf%/*}"
     printf \
         "# This file is regenerated when /usr/share/sch-scripts/initial-setup.sh runs.\n\n# Remember the last version ran, to answer the --check parameter:\nLAST_VERSION=%s\n" "$_VERSION" >"$conf"
@@ -298,8 +297,8 @@ install_sch() {
     echo "Dependencies installed successfully."
     #install files
     install_files
-    # This is the prompt
-    prompt "$@"
+    #This is the prompt
+    prompt
     #This are the configurations
     configure_ltsp
     configure_teachers
