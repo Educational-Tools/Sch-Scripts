@@ -25,12 +25,14 @@ DEST_LIB="/lib"
 DEST_SHARE="/usr/share"
 DEST_SBIN="/usr/sbin"
 DEST_SCRIPTS="/usr/share/sch-scripts"
+DEST_CONFIGS="/usr/share/sch-scripts/configs"
 
 PROJECT_ETC="etc"
 PROJECT_LIB="lib"
 PROJECT_SHARE="share"
 PROJECT_SBIN="sbin"
 PROJECT_SCRIPTS="share/sch-scripts"
+PROJECT_CONFIGS="share/sch-scripts/configs"
 
 PACKAGE_ROOT="/usr/share/sch-scripts"
 
@@ -124,7 +126,7 @@ configure_ltsp() {
     command -v ltsp >/dev/null || return 0
     mkdir -p /etc/ltsp
     if [ ! -f /etc/ltsp/ltsp.conf ]; then
-        install -o root -g root -m 0660 /usr/share/sch-scripts/ltsp.conf /etc/ltsp/ltsp.conf
+        install -o root -g root -m 0660 "$DEST_CONFIGS/ltsp.conf" /etc/ltsp/ltsp.conf
     fi
     rm -f /etc/dnsmasq.d/ltsp-server-dnsmasq.conf
     test -f /etc/dnsmasq.d/ltsp-dnsmasq.conf || ltsp dnsmasq
@@ -136,7 +138,7 @@ configure_teachers() {
     local before after old_ifs teacher teacher_home
 
     # Create "teachers" group and add the administrator to epoptes,teachers
-    test -f /etc/default/shared-folders && . /etc/default/shared-folders
+    test -f "$DEST_ETC/default/shared-folders" && . "$DEST_ETC/default/shared-folders"
     test -n "$TEACHERS" || return 0
     # If the group doesn't exist, create it and add the administrator
     if ! getent group "$TEACHERS" >/dev/null; then
@@ -195,7 +197,7 @@ install_files() {
     echo "Moving files to their destinations..."
 
     # Create directories
-    mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_SCRIPTS"
+    mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_SCRIPTS" "$DEST_CONFIGS"
 
     # Move files
     for file in "$PROJECT_ETC"/*; do
@@ -222,6 +224,11 @@ install_files() {
         backup_file "$DEST_SBIN" "$file"
         install_path "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
+    #Include the config files
+    for file in "$PROJECT_CONFIGS"/*; do
+        backup_file "$DEST_CONFIGS" "$file"
+        install_path "$file" "$DEST_CONFIGS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    done
 
     echo "Files moved successfully."
 }
@@ -245,6 +252,10 @@ revert_files() {
     done
     for file in "$PROJECT_SBIN"/*; do
         revert_file "$DEST_SBIN" "$file"
+    done
+    #Revert configs
+    for file in "$PROJECT_CONFIGS"/*; do
+        revert_file "$DEST_CONFIGS" "$file"
     done
 
     echo "File changes reverted successfully."
@@ -295,6 +306,10 @@ main() {
     fi
 
 }
+#Create the directory of configs
+mkdir -p "$PROJECT_CONFIGS"
+#Move the ltsp config to config directory
+mv "$PROJECT_SCRIPTS/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
 #Execute the main
 main "$@"
 
