@@ -44,7 +44,7 @@ ERROR_INSTALL_DEPENDENCIES="Error: Failed to install dependencies."
 ERROR_MOVE_FILES="Error: Failed to move files to their destinations."
 ERROR_REVERT_FILES="Error: Failed to revert files to their original destinations."
 ERROR_REMOVE_DEPENDENCIES="Error: Failed to remove dependencies."
-ERROR_RUN_INITIAL_SETUP="Error: Failed to run initial setup script."
+ERROR_CONFIGURE="Error: Failed to configure sch-scripts."
 ERROR_START_SERVICES="Error: Failed to start required services."
 
 # Backup and Revert Functions
@@ -91,7 +91,7 @@ install_path() {
         }
     else
         # It's a file
-        install -m 644 "$source_path" "$dest_path"
+        install -o root -g root -m 644 "$source_path" "$dest_path"
     fi
 }
 
@@ -171,33 +171,120 @@ fi
 # --- Configuration ---
 
 if [[ "$REVERT" == false ]]; then
-    echo "Running initial setup..."
 
-    # Run initial-setup.sh
-    /usr/share/sch-scripts/scripts/initial-setup.sh || {
-        echo "$ERROR_RUN_INITIAL_SETUP"
-        exit 1
+    echo "Configuring sch-scripts..."
+
+    #Initial-setup configurations
+
+    # Contains some actions that the sysadmin should run after installation.
+
+    # Initial-setup will automatically prompt to run again if it detects that it
+    # was last ran before the following _VERSION. MANUALLY UPDATE THIS:
+    _PROMPT_AFTER="19.0"
+
+    #Wait for apt lock
+    wait_apt_lock() {
+        while ! flock -w 10 /var/lib/dpkg/lock-frontend -c :; do
+            echo "Waiting for apt lock to be released..."
+            sleep 1
+        done
     }
 
-    echo "Initial setup completed successfully."
-else
-    echo "Skipping initial setup..."
-fi
-
-# --- Start services ---
-
-if [[ "$REVERT" == false ]]; then
-    echo "Starting required services..."
-
-    # Start shared-folders.service
-    systemctl start shared-folders.service || {
-        echo "$ERROR_START_SERVICES"
-        exit 1
+    #install-dependencies
+    install_dependencies() {
+        wait_apt_lock
+        apt-get update
+        apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
+            echo "Error: Failed to install soft dependencies."
+            exit 1
+        }
     }
 
-    echo "Required services started successfully."
+    #ltsp configurations
+    configure_ltsp() {
+        command -v ltsp >/dev/null || return 0
+        mkdir -p /etc/ltsp
+        if [ ! -f /etc/ltsp/ltsp.conf ]; then
+            install -o root -g root -m 0660 /usr/share/sch-scripts/ltsp.conf /etc/ltsp/ltsp.conf
+        fi
+        rm -f /etc/dnsmasq.d/ltsp-server-dnsmasq.conf
+        test -f /etc/dnsmasq.d/ltsp-dnsmasq.conf || ltsp dnsmasq
+        test -f /etc/exports.d/ltsp-nfs.exports || ltsp nfs
+    }
+
+    #teachers configuration
+    configure_teachers() {
+        local before after old_ifs teacher teacher_home
+
+        # Create "teachers" group and add the administrator to epoptes,teachers
+        test -f /etc/default/shared-folders && . /etc/default/shared-folders
+        test -n "$TEACHERS" || return 0
+        # If the group doesn't exist, create it and add the administrator
+        if ! getent group "$TEACHERS" >/dev/null; then
+            addgroup --system --gid 685 "$TEACHERS"
+            detect_administrator
+        fi
+        # TODO: implement what we discussed: https://gitlab.com/sch-scripts/sch-scripts/-/issues/12
+        # If the group exists, ensure the administrator is there
+        if getent group "$TEACHERS" >/dev/null; then
+            # Create a default "teachers" home:
+            teacher_home="/home/$TEACHERS"
+            mkdir -p "$teacher_home"
+            detect_administrator
+            if ! groups "$administrator" | grep -wq "$TEACHERS"; then
+                # administrator was not in group, put it there now
+                adduser "$administrator" "$TEACHERS"
+            fi
+        fi
+    }
+
+    #common.sh functions
+    # Detect the user with id 1000 (the first normal user):
+    detect_administrator() {
+        # shellcheck disable=SC2034
+        administrator="$(id -u 1000 >/dev/null && id -un 1000)"
+    }
+
+    #start_shared_folders service
+    start_shared_folders_service() {
+        echo "Starting shared-folders.service..."
+        systemctl start shared-folders.service || {
+            echo "Error: Failed to start shared-folders.service."
+            exit 1
+        }
+        echo "shared-folders.service started successfully."
+        systemctl status shared-folders.service
+    }
+
+    #This is the equivalent of cmdline in the old initial-setup.sh
+    prompt() {
+        local conf _dummy
+
+        conf=/var/lib/sch-scripts/initial-setup.conf
+        if [ "$1" != "--no-prompt" ]; then
+            printf "Θα εκτελεστούν κάποιες ενέργειες αρχικοποίησης των sch-scripts.\nΠατήστε [Enter] για συνέχεια ή Ctrl+C για εγκατάλειψη: "
+            # shellcheck disable=SC2034
+            read -r _dummy
+        fi
+        mkdir -p "${conf%/*}"
+        printf \
+            "# This file is regenerated when /usr/share/sch-scripts/initial-setup.sh runs.\n\n# Remember the last version ran, to answer the --check parameter:\nLAST_VERSION=%s\n" "$_VERSION" >"$conf"
+    }
+
+    # This is the main
+    main() {
+        prompt "$@"
+        install_dependencies
+        configure_ltsp
+        configure_teachers
+        start_shared_folders_service
+    }
+
+    main
+
+    echo "sch-scripts configuration completed successfully."
 else
-    echo "Skipping starting services..."
+    echo "Skipping sch-scripts configuration..."
 fi
 
 # --- Final Message ---
