@@ -109,8 +109,16 @@ wait_apt_lock() {
 install_dependencies() {
     wait_apt_lock
     apt-get update
-    apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
-        echo "Error: Failed to install soft dependencies."
+    apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 $DEPENDENCIES || {
+        echo "$ERROR_INSTALL_DEPENDENCIES"
+        exit 1
+    }
+}
+
+#remove-dependencies
+remove_dependencies() {
+    apt-get remove  --allow-remove-essential $DEPENDENCIES || {
+        echo "$ERROR_REMOVE_DEPENDENCIES"
         exit 1
     }
 }
@@ -194,26 +202,18 @@ main() {
     configure_teachers
     start_shared_folders_service
 }
+
 # --- Dependency Installation/Removal ---
 
 if [[ "$REVERT" == false ]]; then
-    echo "Installing dependencies..."
-
-    apt-get update
-
-    # Install Dependencies without parallel downloads
-    apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 $DEPENDENCIES || {
-        echo "$ERROR_INSTALL_DEPENDENCIES"
-        exit 1
-    }
-
+    echo "Installing sch-scripts..."
+    # Install dependencies
+    install_dependencies
     echo "Dependencies installed successfully."
 else
-    echo "Removing dependencies..."
-    apt-get remove -y $DEPENDENCIES || {
-        echo "$ERROR_REMOVE_DEPENDENCIES"
-        exit 1
-    }
+    echo "Removing sch-scripts..."
+    #Remove dependencies
+    remove_dependencies
     echo "Dependencies removed successfully."
 fi
 
