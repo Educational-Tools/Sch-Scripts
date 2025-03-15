@@ -9,7 +9,8 @@ if [[ $EUID -ne 0 ]]; then
         echo "Error: Failed to obtain root privileges."
         exit 1
     }
-    exec sudo "$0" "$@" # Re-execute script with sudo
+    sudo bash "$0" "$@" # Re-execute script with sudo
+    exit $? # Exit with the same exit code as the re-executed script
 fi
 
 # Set -e for immediate exit on errors
@@ -62,11 +63,11 @@ revert_file() {
         echo "Restoring: $file_path from $bak_file"
         mv "$bak_file" "$file_path"
     else
-      rm -f "$file_path"
+        rm -f "$file_path"
     fi
 }
 
-# Dependency Installation/Removal
+# --- Dependency Installation/Removal ---
 
 if [[ "$REVERT" == false ]]; then
     echo "Installing dependencies..."
@@ -92,7 +93,7 @@ else
     echo "Dependencies removed successfully."
 fi
 
-# File Movement/Revert 
+# --- File Movement/Revert ---
 
 if [[ "$REVERT" == false ]]; then
     echo "Moving files to their destinations..."
@@ -116,7 +117,7 @@ if [[ "$REVERT" == false ]]; then
     echo "Files moved successfully."
 else
     echo "Reverting file changes..."
-    
+
     # Revert files
     revert_file "$DEST_ETC/$(ls etc/*)"
     revert_file "$DEST_LIB/$(ls lib/*)"
@@ -126,7 +127,7 @@ else
     echo "File changes reverted successfully."
 fi
 
-# Configuration 
+# --- Configuration ---
 
 if [[ "$REVERT" == false ]]; then
     echo "Running initial setup..."
@@ -142,7 +143,7 @@ else
     echo "Skipping initial setup..."
 fi
 
-# Start services
+# --- Start services ---
 
 if [[ "$REVERT" == false ]]; then
     echo "Starting required services..."
@@ -158,7 +159,7 @@ else
     echo "Skipping starting services..."
 fi
 
-# Final Message
+# --- Final Message ---
 
 if [[ "$REVERT" == false ]]; then
     echo "Installation of sch-scripts completed successfully!"
