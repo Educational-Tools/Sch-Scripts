@@ -16,6 +16,9 @@ fi
 # Set -e for immediate exit on errors
 set -e
 
+# --- Global Variables ---
+REVERT=false
+
 # Define variables
 DEST_ETC="/etc"
 DEST_LIB="/lib"
@@ -247,38 +250,48 @@ revert_files() {
     echo "File changes reverted successfully."
 }
 
+# Install function
+install_sch() {
+    echo "Installing sch-scripts..."
+    # Install dependencies
+    install_dependencies
+    echo "Dependencies installed successfully."
+    #install files
+    install_files
+    # This is the prompt
+    prompt "$@"
+    #This are the configurations
+    configure_ltsp
+    configure_teachers
+    start_shared_folders_service
+
+    echo "Installation of sch-scripts completed successfully!"
+}
+
+#remove function
+remove_sch() {
+    echo "Removing sch-scripts..."
+    #Remove dependencies
+    remove_dependencies
+    echo "Dependencies removed successfully."
+    #revert files
+    revert_files
+
+    echo "Revert of sch-scripts completed successfully!"
+}
+
 # This is the main
 main() {
-    REVERT=false
+    
     if [[ "$1" == "-u" ]]; then
         REVERT=true
     fi
     echo "Value of REVERT inside main: $REVERT"
     
     if [[ $REVERT == false ]]; then
-        echo "Installing sch-scripts..."
-        # Install dependencies
-        install_dependencies
-        echo "Dependencies installed successfully."
-        #install files
-        install_files
-        # This is the prompt
-        prompt "$@"
-        #This are the configurations
-        configure_ltsp
-        configure_teachers
-        start_shared_folders_service
-
-        echo "Installation of sch-scripts completed successfully!"
+        install_sch "$@"
     else
-        echo "Removing sch-scripts..."
-        #Remove dependencies
-        remove_dependencies
-        echo "Dependencies removed successfully."
-        #revert files
-        revert_files
-
-        echo "Revert of sch-scripts completed successfully!"
+        remove_sch
     fi
 
 }
