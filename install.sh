@@ -72,13 +72,10 @@ revert_file() {
 if [[ "$REVERT" == false ]]; then
     echo "Installing dependencies..."
 
-    # Get number of CPU cores for parallel installation
-    NUM_CORES=$(nproc)
-
     apt-get update
 
-    # Install Dependencies with parallel downloads
-    apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 -j"$NUM_CORES" $DEPENDENCIES || {
+    # Install Dependencies without parallel downloads
+    apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 $DEPENDENCIES || {
         echo "$ERROR_INSTALL_DEPENDENCIES"
         exit 1
     }
