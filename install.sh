@@ -308,8 +308,8 @@ main() {
 }
 #Create the directory of configs
 mkdir -p "$PROJECT_CONFIGS"
-#Move the ltsp config to config directory
-mv "$PROJECT_SCRIPTS/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
+#Copy the ltsp config to config directory
+cp "$PROJECT_SCRIPTS/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
 #Execute the main
 main "$@"
 
