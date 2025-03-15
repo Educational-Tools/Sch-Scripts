@@ -16,11 +16,15 @@ fi
 # Set -e for immediate exit on errors
 set -e
 
+echo "Initial value of REVERT: $REVERT"
+
 # Check for revert argument
-REVERT=false
 if [[ "$1" == "-u" ]]; then
+    echo "Revert flag detected!"
     REVERT=true
 fi
+
+echo "Value of REVERT after checking for -u: $REVERT"
 
 # Define variables
 DEST_ETC="/etc"
@@ -201,13 +205,14 @@ main() {
     start_shared_folders_service
 }
 # --- Install or Remove dependencies ---
+echo "Entering dependency handling block."
 if [[ $REVERT == false ]]; then
-    echo "Installing sch-scripts..."
+    echo "REVERT is false. Installing dependencies..."
     # Install dependencies
     install_dependencies
     echo "Dependencies installed successfully."
 else
-    echo "Removing sch-scripts..."
+    echo "REVERT is true. Removing dependencies..."
     #Remove dependencies
     remove_dependencies
     echo "Dependencies removed successfully."
@@ -215,7 +220,9 @@ fi
 
 # --- File Movement/Revert ---
 
+echo "Entering file handling block."
 if [[ $REVERT == false ]]; then
+    echo "REVERT is false. Moving files..."
     echo "Moving files to their destinations..."
 
     # Create directories
@@ -249,6 +256,7 @@ if [[ $REVERT == false ]]; then
 
     echo "Files moved successfully."
 else
+    echo "REVERT is true. Reverting files..."
     echo "Reverting file changes..."
 
     # Revert files
@@ -273,18 +281,21 @@ fi
 
 # --- Configuration ---
 
+echo "Entering configuration block."
 if [[ $REVERT == false ]]; then
+    echo "REVERT is false. Configuring sch-scripts..."
 
     # This is the main
     main
 
     echo "sch-scripts configuration completed successfully."
 else
-    echo "Skipping sch-scripts configuration..."
+    echo "REVERT is true. Skipping sch-scripts configuration..."
 fi
 
 # --- Final Message ---
 
+echo "Reaching final message block."
 if [[ $REVERT == false ]]; then
     echo "Installation of sch-scripts completed successfully!"
 else
