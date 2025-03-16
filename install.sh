@@ -1,59 +1,58 @@
 #!/bin/bash
 
-# --- Setup and Error Handling and functions ---
-
-# Check if running with sudo, prompt for password if needed
 if [[ $EUID -ne 0 ]]; then
-    echo -e "\\e[1mΑυτό το σενάριο απαιτεί δικαιώματα root. Παρακαλώ εισάγετε τον κωδικό sudo σας:\\e[0m"
+    echo "This script requires root privileges. Please enter your sudo password:"
     sudo true || {
-        echo -e "\\e[1mΣφάλμα: Αδυναμία απόκτησης δικαιωμάτων root.\\e[0m"
+        echo "Error: Failed to obtain root privileges."
         exit 1
     }
-    sudo bash "$0" "$@" # Re-execute script with sudo
-    exit "$?" # Exit with the same exit code as the re-executed script
+    sudo bash "$0" "$@"
+    exit $?
 fi
 
-# Set -e for immediate exit on errors
 set -e
 
-# --- Global Variables ---
+# Global Variables
 REVERT=false
-# Define variables
+
+# System Directories.
 DEST_ETC="/etc"
 DEST_LIB="/lib"
 DEST_SHARE="/usr/share"
 DEST_SBIN="/usr/sbin"
 DEST_ROOT="/usr/share/sch-scripts"
-DEST_CONFIGS="/usr/share/sch-scripts/configs"
-DEST_UI="/usr/share/sch-scripts/ui"DEST_BINS="/usr/share/sch-scripts/scripts"
+
+# Project Directories.
 PROJECT_ETC="etc"
 PROJECT_LIB="lib"
-PROJECT_SHARE="share"PROJECT_SBIN="sbin"
+PROJECT_SHARE="share"
 PROJECT_SBIN="sbin"
 PROJECT_ROOT="share/sch-scripts"
+
+#Specific Project Directories
+DEST_CONFIGS="/usr/share/sch-scripts/configs"
+DEST_UI="/usr/share/sch-scripts/ui"
+DEST_BINS="/usr/share/sch-scripts/scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
 
-# Dependencies
+# Dependencies.
 DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
 
-# Uninstall Dependencies
-UNINSTALL_DEPENDENCIES="epoptes openssh-server net-tools symlinks"
+# Uninstall Dependencies.
+UNINSTALL_DEPENDENCIES="epoptes openssh-server net-tools symlinks ltsp"
 
-# Configurations variables
+# Configuration variables.
 SHARE_DIR="/home/Shared"
 PUBLIC_DIR="/home/Shared/Public"
 
-# Error messages
-ERROR_INSTALL_DEPENDENCIES="\\e[1mΣφάλμα: Αποτυχία εγκατάστασης των εξαρτήσεων.\\e[0m"
-ERROR_MOVE_FILES="\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"
-ERROR_REVERT_FILES="\\e[1mΣφάλμα: Αποτυχία επαναφοράς των αρχείων στους αρχικούς τους προορισμούς.\\e[0m"
-ERROR_REMOVE_DEPENDENCIES="\\e[1mΣφάλμα: Αποτυχία απεγκατάστασης των εξαρτήσεων.\\e[0m"
-ERROR_CONFIGURE="\\e[1mΣφάλμα: Αποτυχία διαμόρφωσης των sch-scripts.\\e[0m"
-ERROR_START_SERVICES="\\e[1mΣφάλμα: Αποτυχία εκκίνησης των απαραίτητων υπηρεσιών.\\e[0m"
+# Error messages.
+ERROR_INSTALL_DEPENDENCIES="Error: Failed to install dependencies."
+ERROR_MOVE_FILES="Error: Failed to move files to their destinations."
+ERROR_REVERT_FILES="Error: Failed to revert files to their original destinations."
+ERROR_REMOVE_DEPENDENCIES="Error: Failed to remove dependencies."
 
-# Backup and Revert Functions
 
 backup_file() {
     local dest_dir="$1"
@@ -61,10 +60,10 @@ backup_file() {
     local dest_file="$dest_dir/$(basename "$source_file")"
     local bak_file="$dest_file.bak"
 
-    # Check if the destination file exists
+    # Check if the destination file exists.
     if [[ -f "$dest_file" ]]; then
-        echo -e "\\e[1mΔημιουργία αντιγράφου ασφαλείας: $dest_file στο $bak_file\\e[0m"
-        mv "$dest_file" "$bak_file"
+        echo "Backing up: $dest_file to $bak_file"
+        mv "$dest_file" "$bak_file" || exit 1
     fi
 }
 
@@ -73,30 +72,29 @@ revert_file() {
     local source_file="$2"
     local file_path="$dest_dir/$(basename "$source_file")"
     local bak_file="$file_path.bak"
-
     if [[ -f "$bak_file" ]]; then
-        echo -e "\\e[1mΕπαναφορά: $file_path από $bak_file\\e[0m"
+        echo "Restoring: $file_path from $bak_file"
         mv "$bak_file" "$file_path"
     else
         rm -f "$file_path"
     fi
 }
 
-# Install function (for directories and files)
-
+#Install function.
 install_path() {
     local source_path="$1"
     local dest_path="$2"
-
     if [[ -d "$source_path" ]]; then
-        # It's a directory, use cp -r to copy recursively
+        # If it's a directory, use cp -r to copy recursively.
         mkdir -p "$dest_path/$(basename "$source_path")"
-        cp -r "$source_path"/* "$dest_path/$(basename "$source_path")" || {
-          echo -e "\\e[1mΑποτυχία αντιγραφής του καταλόγου.\\e[0m"
+        cp -r "$source_path"/* "$dest_path/$(basename "$source_path")" || { 
+          echo "Failed to copy directory."
           exit 1
         }
     else
-        # It's a file
+        if [[ "$dest_path" == "$DEST_SBIN" ]]; then
+            install -o root -g root -m 0755 "$source_path" "$dest_path"
+        elif [[ "$source_path" == *.py ]] || [[ "$source_path" == *.sh ]]; then
             install -o root -g root -m 0755 "$source_path" "$dest_path"
         else
             install -o root -g root -m 0644 "$source_path" "$dest_path"
@@ -104,182 +102,139 @@ install_path() {
     fi
 }
 
-#Wait for apt lock
+# Wait for apt lock.
 wait_apt_lock() {
     while ! flock -w 10 /var/lib/dpkg/lock-frontend -c :; do
-        echo -e "\\e[1mΑναμονή για την απελευθέρωση του κλειδώματος apt...\\e[0m"
+        echo "Waiting for apt lock to be released..."
         sleep 1
     done
 }
-
-#install-dependencies
-
-# Dependencies
-DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
-
-# Uninstall Dependencies
-UNINSTALL_DEPENDENCIES="epoptes openssh-server net-tools symlinks"
-
-
 install_dependencies() {
     wait_apt_lock
     apt-get update
     apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 $DEPENDENCIES || {
-        echo -e "$ERROR_INSTALL_DEPENDENCIES"
-        exit 1
+        echo "$ERROR_INSTALL_DEPENDENCIES"
+        exit 1 
     }
 }
-
-#remove-dependencies
 remove_dependencies() {
-    apt-get remove  --allow-remove-essential $UNINSTALL_DEPENDENCIES || {
-        echo -e "$ERROR_REMOVE_DEPENDENCIES"
+    apt-get remove --allow-remove-essential $UNINSTALL_DEPENDENCIES || {
+        echo "$ERROR_REMOVE_DEPENDENCIES"
         exit 1
     }
 }
-
-#teachers configuration
 configure_teachers() {
-    local before after old_ifs teacher teacher_home
-
-    # Create "teachers" group and add the administrator to epoptes,teachers
     test -n "$TEACHERS" || return 0
-    # If the group doesn't exist, create it and add the administrator
     if ! getent group "$TEACHERS" >/dev/null; then
         addgroup --system --gid 685 "$TEACHERS"
         detect_administrator
     fi
-    # TODO: implement what we discussed: https://gitlab.com/sch-scripts/sch-scripts/-/issues/12
-    # If the group exists, ensure the administrator is there
     if getent group "$TEACHERS" >/dev/null; then
-        # Create a default "teachers" home:
         teacher_home="/home/$TEACHERS"
         mkdir -p "$teacher_home"
         detect_administrator
         if ! groups "$administrator" | grep -wq "$TEACHERS"; then
-            # administrator was not in group, put it there now
             adduser "$administrator" "$TEACHERS"
         fi
     fi
-    #Create the symlinks:
-    # Find the home directory for the administrator
     home_dir=$(getent passwd "$administrator" | cut -d: -f6)
-    
-    # Create symlinks
     if [ -d "$home_dir" ]; then
         for dir in "$SHARE_DIR"/*; do
           group=$(basename "$dir")
-          # Create symlinks
           ln -sf "$SHARE_DIR/$group" "$home_dir/Public/$group"
         done
         ln -sf "$PUBLIC_DIR" "$home_dir/Public/Public"
     fi
 }
-#common.sh functions
-#common.sh functions
-# Detect the user with id 1000 (the first normal user):
 detect_administrator() {
-  # Detect the administrator user
-    # shellcheck disable=SC2034
     administrator="$(id -u 1000 >/dev/null && id -un 1000)"
 }
-
-#start_shared_folders service
-start_shared_folders_service() {
-    echo "Starting shared-folders.service..."
+start_services() {
+    
     systemctl start shared-folders.service || {
         echo "Error: Failed to start shared-folders.service."
         exit 1
     }
     echo "shared-folders.service started successfully."
-}
 
-#Create the public folder
+    systemctl start user-defaults.service || {
+        echo "Error: Failed to start user-defaults.service."
+        exit 1
+    }
+    echo "user-defaults.service started successfully."
+}
 create_public_folder() {
-    echo -e "\\e[1mΔημιουργία του δημόσιου φακέλου...\\e[0m"
+    echo "Creating the public folder..."
+    test -d "$PUBLIC_DIR" && return 0
     mkdir -p "$PUBLIC_DIR"
     if [ $? -ne 0 ]; then
-        echo -e "\\e[1mΣφάλμα: Αποτυχία δημιουργίας $PUBLIC_DIR.\\e[0m"
+        echo "Error: Failed to create $PUBLIC_DIR."
         exit 1
     fi
     chmod 0777 "$PUBLIC_DIR"
 }
-
-#install files
 install_files() {
-    echo -e "\\e[1mΜετακίνηση αρχείων στους προορισμούς τους...\\e[0m"
-
-    # Create directories
+    echo "Moving files to their destinations..."
     mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_ROOT" "$DEST_CONFIGS" "$DEST_UI" "$DEST_BINS"
-
-    # Create /etc/default/shared-folders from default
     if [ ! -f "$DEST_ETC/default/shared-folders" ]; then
-        install -o root -g root -m 0644 "$PROJECT_ETC/default/shared-folders.default" "$DEST_ETC/default/shared-folders" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install -o root -g root -m 0644 "$PROJECT_ETC/default/shared-folders.default" "$DEST_ETC/default/shared-folders" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     fi
-
-    # Move files
     for file in "$PROJECT_ETC"/*; do
          if [[ "$DEST_ETC" != "$DEST_ROOT" ]] && [[ "$DEST_ETC" != "$DEST_SBIN" ]] && [[ "$file" != "$PROJECT_ETC/default/shared-folders.default" ]]; then
             backup_file "$DEST_ETC" "$file"
         fi
-        install_path "$file" "$DEST_ETC" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-
     for file in "$PROJECT_LIB"/*; do
         if [[ "$DEST_LIB" != "$DEST_ROOT" ]] && [[ "$DEST_LIB" != "$DEST_SBIN" ]]; then
             backup_file "$DEST_LIB" "$file"
         fi
-        install_path "$file" "$DEST_LIB" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_LIB" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-
     for file in "$PROJECT_SHARE"/*; do
         if [[ "$DEST_SHARE" != "$DEST_ROOT" ]] && [[ "$DEST_SHARE" != "$DEST_SBIN" ]]; then
             backup_file "$DEST_SHARE" "$file"
         fi
-        install_path "$file" "$DEST_SHARE" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-    #Include the sch-scripts.py
     for file in "$PROJECT_ROOT"/*; do
-        # Exclude configs, ui and scripts directories
-        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then
-           install_path "$file" "$DEST_ROOT" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then 
+           install_path "$file" "$DEST_ROOT" || { echo "$ERROR_MOVE_FILES"; exit 1; }
         fi
     done
-
     for file in "$PROJECT_SBIN"/*; do
-       install_path "$file" "$DEST_SBIN" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+       install_path "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-    #Include the config files
     for file in "$PROJECT_CONFIGS"/*; do
-        install_path "$file" "$DEST_CONFIGS" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_CONFIGS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-    #Include the ui files
     for file in "$PROJECT_UI"/*; do
-        install_path "$file" "$DEST_UI" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_UI" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-    #Include the script files
     for file in "$PROJECT_BINS"/*; do
-        install_path "$file" "$DEST_BINS" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
+        install_path "$file" "$DEST_BINS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-    #Move shared-folders.service
     install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
-        echo -e "\\e[1mΑποτυχία δημιουργίας του /etc/systemd/system/shared-folders.service\\e[0m"
+        echo "Failed to create /etc/systemd/system/shared-folders.service"
         exit 1
     }
-    #Move shared-folders
+    install -o root -g root -m 0644 "etc/systemd/system/user-defaults.service" "$DEST_ETC/systemd/system/user-defaults.service" || {
+        echo "Failed to create /etc/systemd/system/user-defaults.service"
+        exit 1
+    }
     install -o root -g root -m 0755 "sbin/shared-folders" "$DEST_SBIN/shared-folders" || {
-        echo -e "\\e[1mΑποτυχία δημιουργίας του /usr/sbin/shared-folders.\\e[0m"
+        echo "Failed to create /usr/sbin/shared-folders."
+        exit 1
+    }
+    install -o root -g root -m 0755 "sbin/user-defaults" "$DEST_SBIN/user-defaults" || {
+        echo "Failed to create /usr/sbin/user-defaults."
         exit 1
     }
     systemctl daemon-reload
-    echo -e "\\e[1mΤα αρχεία μετακινήθηκαν με επιτυχία.\\e[0m"
-}
-
-#revert files
+    echo "Files moved successfully."
+} 
 revert_files() {
-    echo -e "\\e[1mΕπαναφορά αλλαγών αρχείων...\\e[0m"
-
-    # Revert files
+    echo "Reverting file changes..."
     for file in "$PROJECT_ETC"/*; do
          if [[ "$DEST_ETC" != "$DEST_ROOT" ]] && [[ "$DEST_ETC" != "$DEST_SBIN" ]]; then
             revert_file "$DEST_ETC" "$file"
@@ -295,113 +250,75 @@ revert_files() {
             revert_file "$DEST_SHARE" "$file"
          fi
     done
-    #Revert the sch-scripts files
     for file in "$PROJECT_ROOT"/*; do
-        # Exclude configs, ui and scripts directories
-        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then
+        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then 
             revert_file "$DEST_ROOT" "$file"
         fi
     done
     for file in "$PROJECT_SBIN"/*; do
         revert_file "$DEST_SBIN" "$file"
     done
-    #Revert configs
-    for file in "$PROJECT_CONFIGS"/*; do
+    for file in "$PROJECT_CONFIGS"/*; do 
         revert_file "$DEST_CONFIGS" "$file"
     done
-    #Revert ui
-    for file in "$PROJECT_UI"/*; do
+    for file in "$PROJECT_UI"/*; do 
         revert_file "$DEST_UI" "$file"
     done
-    #Revert scripts
-    for file in "$PROJECT_BINS"/*; do
+    for file in "$PROJECT_BINS"/*; do 
         revert_file "$DEST_BINS" "$file"
     done
-    #Revert shared-folders.service
     rm -rf "$PUBLIC_DIR"
-
     revert_file "$DEST_ETC/systemd/system" "etc/systemd/system/shared-folders.service"
-    #Revert shared-folders
+    rm -rf "$PUBLIC_DIR"
+    revert_file "$DEST_ETC/systemd/system" "etc/systemd/system/user-defaults.service"
     revert_file "$DEST_SBIN" "sbin/shared-folders"
-
-    #Revert wallpaper
-    rm -rf "$DEST_BACKGROUNDS"/*
-    #Revert shared-folders.service
-    rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
-    #Revert shared-folders
-    rm -rf "$DEST_SBIN/shared-folders"
-
-
-    #Revert shared-folders.service
-    rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
-    #Revert shared-folders
-    rm -rf "$DEST_SBIN/shared-folders"
-    #Revert wallpaper
+    echo "File changes reverted successfully."
+    revert_file "$DEST_SBIN" "sbin/user-defaults"
+    echo "File changes reverted successfully."
 }
-
-# Install function
 install_sch() {
-    echo -e "\\e[1mΕγκατάσταση sch-scripts...\\e[0m"
-    # Install dependencies
-    install_dependencies
-    echo -e "\\e[1mΟι εξαρτήσεις εγκαταστάθηκαν με επιτυχία.\\e[0m"
-    #install files
-    install_files
-    #Create public directory
-    create_public_folder
-    #This are the configurations
-    configure_teachers
-    #Start the service
-    start_shared_folders_service
+    echo "Installing sch-scripts..."
 
+    install_dependencies
+    echo "Dependencies installed successfully."
+    install_files
+    create_public_folder
+    configure_teachers
+    start_services
     echo "Installation of sch-scripts completed successfully!"
 }
 
-#remove function
 remove_sch() {
-    echo -e "\\e[1mΑπεγκατάσταση sch-scripts...\\e[0m"
-    #Remove dependencies
+    echo "Removing sch-scripts..."
     remove_dependencies
-    echo -e "\\e[1mΟι εξαρτήσεις απεγκαταστάθηκαν με επιτυχία.\\e[0m"
-    #revert files
+    echo "Dependencies removed successfully."
     revert_files
-    
-    
-
-    echo -e "\\e[1mΗ επαναφορά των sch-scripts ολοκληρώθηκε με επιτυχία!\\e[0m"
+    echo "Revert of sch-scripts completed successfully!"
 }
 
-# This is the main
 main() {
-
-        if [[ "$1" == "-u" ]]; then
+    if [[ "$1" == "-u" ]]; then
         REVERT=true
     fi
     echo "Value of REVERT inside main: $REVERT"
-
     if [[ $REVERT == false ]]; then
         install_sch "$@"
     else
         remove_sch
-    fi
-
+    fi  
 }
-#Create the directory of configs if it does not exist
 if [ ! -d "$PROJECT_CONFIGS" ]; then
     mkdir -p "$PROJECT_CONFIGS"
-    #Copy the ltsp config to config directory
     cp "$PROJECT_ROOT/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
 fi
-#Create the directory of UI if it does not exist
+
 if [ ! -d "$PROJECT_UI" ]; then
     mkdir -p "$PROJECT_UI"
 fi
-#Create the directory of BINS if it does not exist
 if [ ! -d "$PROJECT_BINS" ]; then
     mkdir -p "$PROJECT_BINS"
 fi
 
-#Execute the main
 main "$@"
 
 exit 0
