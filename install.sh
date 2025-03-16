@@ -166,12 +166,14 @@ configure_teachers() {
     # Create symlinks
     if [ -d "$home_dir" ]; then
         for dir in "$SHARE_DIR"/*; do
-            group=$(basename "$dir")
-            # Create symlinks
-            ln -sf "$SHARE_DIR/$group" "$home_dir/Public/$group"
+          group=$(basename "$dir")
+          # Create symlinks
+          ln -sf "$SHARE_DIR/$group" "$home_dir/Public/$group"
+        done
+        ln -sf "$PUBLIC_DIR" "$home_dir/Public/Public"
     fi
 }
-
+#common.sh functions
 #common.sh functions
 # Detect the user with id 1000 (the first normal user):
 detect_administrator() {
