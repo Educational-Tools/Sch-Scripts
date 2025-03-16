@@ -34,7 +34,13 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/backgrounds/linuxmint"
+
+# Dependencies
+DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
+
+# Uninstall Dependencies
+UNINSTALL_DEPENDENCIES="epoptes openssh-server net-tools symlinks"
+
 # Configurations variables
 SHARE_DIR="/home/Shared"
 PUBLIC_DIR="/home/Shared/Public"
@@ -168,21 +174,24 @@ configure_teachers() {
         done
         ln -sf "$PUBLIC_DIR" "$home_dir/Public/Public"
     fi
-
-    # Ensure the administrator is in the epoptes group
-    if ! groups "$administrator" | grep -wq "epoptes"; then
-        usermod -aG epoptes "$administrator"
-    fi
 }
-
-
-
-
+#common.sh functions
+#common.sh functions
 # Detect the user with id 1000 (the first normal user):
 detect_administrator() {
   # Detect the administrator user
     # shellcheck disable=SC2034
     administrator="$(id -u 1000 >/dev/null && id -un 1000)"
+}
+
+#start_shared_folders service
+start_shared_folders_service() {
+    echo "Starting shared-folders.service..."
+    systemctl start shared-folders.service || {
+        echo "Error: Failed to start shared-folders.service."
+        exit 1
+    }
+    echo "shared-folders.service started successfully."
 }
 
 #Create the public folder
@@ -315,6 +324,14 @@ revert_files() {
     #Revert shared-folders
     revert_file "$DEST_SBIN" "sbin/shared-folders"
 
+    #Revert wallpaper
+    rm -rf "$DEST_BACKGROUNDS"/*
+    #Revert shared-folders.service
+    rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
+    #Revert shared-folders
+    rm -rf "$DEST_SBIN/shared-folders"
+
+
     #Revert shared-folders.service
     rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
     #Revert shared-folders
@@ -334,8 +351,10 @@ install_sch() {
     create_public_folder
     #This are the configurations
     configure_teachers
-    
-    echo -e "\\e[1mΗ εγκατάσταση των sch-scripts ολοκληρώθηκε με επιτυχία!\\e[0m"
+    #Start the service
+    start_shared_folders_service
+
+    echo "Installation of sch-scripts completed successfully!"
 }
 
 #remove function
