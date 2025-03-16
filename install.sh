@@ -169,7 +169,6 @@ configure_teachers() {
             group=$(basename "$dir")
             # Create symlinks
             ln -sf "$SHARE_DIR/$group" "$home_dir/Public/$group"
-        fi
     fi
 }
 
