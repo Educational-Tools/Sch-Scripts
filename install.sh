@@ -228,21 +228,18 @@ install_wallpapers() {
         if [[ "$hostname" == "$server" ]]; then
             wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
             
-            # Create the directory if it does not exist
+            # Create the directory if it does not exist and set permissions
             mkdir -p "$DEST_LINUXMINT_WALLPAPERS" 
-            #Check if the default_background.png exists and rename it
-            #Check if the default_linuxmint.png exists and rename it
-            if [[ -f "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" ]]; then
-                mv "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png.bak"
-            fi
-            
-            # Use the full path to the wallpaper file.
-            install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
-            #Check if the default_background.png exists and rename it
+            chmod 755 "$DEST_LINUXMINT_WALLPAPERS"
+           
+             #Check if the default_background.png exists and rename it
              if [[ -f "$DEST_LINUXMINT_WALLPAPERS/default_background.png" ]]; then
                 mv "$DEST_LINUXMINT_WALLPAPERS/default_background.png" "$DEST_LINUXMINT_WALLPAPERS/default_background.png.bak"
             fi
-            cp "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
+             # Copy the file
+             install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
+              # Copy the file to default_background.png
+              cp "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/default_background.png" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
            
             # Set permissions for the directory
             chmod 755 "$DEST_LINUXMINT_WALLPAPERS" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής των δικαιωμάτων του καταλόγου $DEST_LINUXMINT_WALLPAPERS.\\e[0m"; exit 1; }
@@ -446,9 +443,24 @@ install_sch() {
           mode=$(get_mode)
           wallpaper_file="/usr/share/backgrounds/linuxmint/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
             sed -i "/^\[Seat:\*\]/s/^\(background=\).*/\1$wallpaper_file/" /etc/lightdm/lightdm.conf || sed -i "/^\[Seat:\*\]/a background=$wallpaper_file" /etc/lightdm/lightdm.conf
+          
+            # Check if the line "background=" exists
+            if grep -q "^background=" /etc/lightdm/lightdm.conf; then
+              # Modify the existing line
+              sed -i "/^\[Seat:\*\]/s/^\(background=\).*/\1$wallpaper_file/" /etc/lightdm/lightdm.conf
+            else
+              # Add a new line
+              sed -i "/^\[Seat:\*\]/a background=$wallpaper_file" /etc/lightdm/lightdm.conf
+            fi
+
+
                 #Check if the lines exists
                 if ! grep -q "^greeter-hide-users=false" /etc/lightdm/lightdm.conf; then
                    #add greeter-hide-users=false
+                    
+                    sed -i "/^\[Seat:\*\]/a greeter-hide-users=false" /etc/lightdm/lightdm.conf
+                fi
+                if ! grep -q "^autologin-user=testuser" /etc/lightdm/lightdm.conf; then
                      sed -i "/^\[Seat:\*\]/a greeter-hide-users=false" /etc/lightdm/lightdm.conf
                 fi
                 if ! grep -q "^autologin-user=testuser" /etc/lightdm/lightdm.conf; then
