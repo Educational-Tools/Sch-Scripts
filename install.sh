@@ -37,7 +37,7 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/background/School-Wallpapers"
+PROJECT_BACKGROUNDS="share/backgrounds/School-Wallpapers"
 DEST_BACKGROUNDS="/usr/share/backgrounds"
 
 # Dependencies
