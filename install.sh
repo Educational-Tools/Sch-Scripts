@@ -37,7 +37,7 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/backgrounds/School-Wallpapers"
+PROJECT_BACKGROUNDS="share/backgrounds/School-Wallpapers" # Corrected line
 DEST_BACKGROUNDS="/usr/share/backgrounds"
 
 # Dependencies
@@ -222,7 +222,7 @@ install_wallpapers() {
   for server in "${SERVER_WALLPAPERS[@]}"; do
     if [[ "$hostname" == "$server" ]]; then
       wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
-      # Use the full path to the wallpaper file
+      # Use the full path to the wallpaper file and correct variable.
       install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/School-Wallpapers/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
       break
     fi
@@ -380,6 +380,7 @@ revert_files() {
     #Revert wallpaper
     rm -rf "$DEST_BACKGROUNDS/School-Wallpapers"/*
     #Remove the added file
+    rm -rf /etc/lightdm/lightdm-gtk-greeter.conf.d/98-sch-scripts.conf
     rm -rf /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf
 
 
@@ -418,36 +419,37 @@ install_sch() {
                 fi
             fi
         fi
-        # Set the wallpaper using dconf.
-        mode=$(get_mode)
-        wallpaper_file="/usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
+        #Check if lightdm is running
+        if systemctl is-active --quiet lightdm; then
+            # Set the wallpaper using dconf.
+            mode=$(get_mode)
+            wallpaper_file="/usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
 
-        # Check if the wallpaper file exists
-        if [[ -f "$wallpaper_file" ]]; then
-            #Check if the config folder exist
-            if [ ! -d /etc/lightdm/lightdm-gtk-greeter.conf.d ]; then
-                mkdir -p /etc/lightdm/lightdm-gtk-greeter.conf.d
-            fi
-            #Check if the file exist
-            if [[ -f /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf ]]; then
-               #Read the file
-                file_content=$(cat /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf)
-                #check if the line exist
-                if echo "$file_content" | grep -q "background="; then
-                   #comment out the line background=
-                    sed -i 's/^\(background=\).*/#\1/' /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
+            # Check if the wallpaper file exists
+            if [[ -f "$wallpaper_file" ]]; then
+                #Check if the config folder exist
+                if [ ! -d /etc/lightdm/lightdm-gtk-greeter.conf.d ]; then
+                    mkdir -p /etc/lightdm/lightdm-gtk-greeter.conf.d
                 fi
-                 # Append the new background line if it does not exist
-                 if ! echo "$file_content" | grep -q "background=$wallpaper_file"; then
-                     echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
-                 fi
-            else
-                # Append the background line to the new file if it does not exist
-                if ! grep -q "background=$wallpaper_file" /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf; then
-                    echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf
+                #Check if the file exist
+                if [[ -f /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf ]]; then
+                   #Read the file
+                    file_content=$(cat /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf)
+                   #Check if file has the right syntax
+                    if ! grep -q "^\[.*]" /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf; then
+                       echo -e "\\e[1mΣφάλμα: Το αρχείο /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf δεν έχει την σωστή σύνταξη.\\e[0m"; exit 1;
+                    fi
+                    #check if the line exist
+                    if echo "$file_content" | grep -q "background="; then
+                       #comment out the line background=
+                        sed -i 's/^\(background=\).*/#\1/' /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
+                    fi
                 fi
-            fi
+                # Write the background line to a new file:
+                echo "[greeter]" > /etc/lightdm/lightdm-gtk-greeter.conf.d/98-sch-scripts.conf
+                echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/98-sch-scripts.conf
 
+            fi
         fi
     fi
     #Start the service
