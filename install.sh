@@ -217,7 +217,6 @@ install_wallpapers() {
       install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/$wallpaper_file" || { echo "Error: Failed to move files to their destinations."; exit 1; }      
       break
     fi
-  done
 }
 
 # Detect the user with id 1000 (the first normal user):
