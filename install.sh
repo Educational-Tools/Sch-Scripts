@@ -37,7 +37,7 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/backgrounds/linuxmint" # Corrected line
+PROJECT_BACKGROUNDS="share/backgrounds/linuxmint"
 DEST_BACKGROUNDS="/usr/share/backgrounds"
 DEST_LINUXMINT_WALLPAPERS="/usr/share/backgrounds/linuxmint"
 
@@ -228,9 +228,9 @@ install_wallpapers() {
         if [[ "$hostname" == "$server" ]]; then
             wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
             
-            # Create the directory if it does not exists
+            # Create the directory if it does not exist
             mkdir -p "$DEST_LINUXMINT_WALLPAPERS" 
-            
+            #Check if the default_background.png exists and rename it
             #Check if the default_linuxmint.png exists and rename it
             if [[ -f "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" ]]; then
                 mv "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png.bak"
@@ -238,8 +238,10 @@ install_wallpapers() {
             
             # Use the full path to the wallpaper file.
             install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
-           
-            # Copy the selected wallpaper to default_linuxmint.png
+            #Check if the default_background.png exists and rename it
+             if [[ -f "$DEST_LINUXMINT_WALLPAPERS/default_background.png" ]]; then
+                mv "$DEST_LINUXMINT_WALLPAPERS/default_background.png" "$DEST_LINUXMINT_WALLPAPERS/default_background.png.bak"
+            fi
             cp "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
            
             # Set permissions for the directory
