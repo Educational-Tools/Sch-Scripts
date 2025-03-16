@@ -316,6 +316,7 @@ install_sch() {
     configure_teachers
     #Create the service
     create_service
+    #Start the service
     start_shared_folders_service
 
     echo "Installation of sch-scripts completed successfully!"
