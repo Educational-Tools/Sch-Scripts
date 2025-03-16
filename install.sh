@@ -245,15 +245,17 @@ set_default_wallpaper() {
   mode=$(get_mode)
     for server in "${SERVER_WALLPAPERS[@]}"; do
         if [[ "$hostname" == "$server" ]]; then
-            wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
+            wallpaper_file="${server}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
             # Loop through the users to set the wallpaper
            find /home/ -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d $'\0' dir; do
              user=$(basename "$dir")
              if [ "$user" != "Shared" ]; then
-          gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/$wallpaper_file" || echo "Error: Could not change the wallpaper"
-        exit 1
-    }
-    echo "shared-folders.service started successfully."
+              gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/$wallpaper_file" || echo "Error: Could not change the wallpaper"
+             fi
+           done
+        fi
+     done
+}
 
 #Create the public folder
 create_public_folder() {
