@@ -1,13 +1,10 @@
 [Unit]
 Description=User Defaults Service
 After=graphical-session.target
-PartOf=graphical-session.target
 
 [Service]
-Type=forking
+Type=oneshot
 User=root
+Environment=DISPLAY=:0
 
 ExecStart=/usr/sbin/user-defaults
-
-[Install]
-WantedBy=graphical-session.target

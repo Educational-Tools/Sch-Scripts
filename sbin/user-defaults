@@ -1,6 +1,7 @@
 #!/bin/bash
+export DISPLAY=:0
 
-# set -x
+
 # Constants and variables
 CONFIG_DIR="/usr/share/sch-scripts/configs" 
 PYTHON_SCRIPT="/usr/share/sch-scripts/user_defaults.py"
