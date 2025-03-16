@@ -207,45 +207,46 @@ install_files() {
 
     # Move files
     for file in "$PROJECT_ETC"/*; do
-        backup_file "$DEST_ETC" "$file"
+         if [[ "$DEST_ETC" != "$DEST_ROOT" ]] && [[ "$DEST_ETC" != "$DEST_SBIN" ]]; then
+            backup_file "$DEST_ETC" "$file"
+        fi
         install_path "$file" "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     for file in "$PROJECT_LIB"/*; do
-        backup_file "$DEST_LIB" "$file"
+        if [[ "$DEST_LIB" != "$DEST_ROOT" ]] && [[ "$DEST_LIB" != "$DEST_SBIN" ]]; then
+            backup_file "$DEST_LIB" "$file"
+        fi
         install_path "$file" "$DEST_LIB" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
     for file in "$PROJECT_SHARE"/*; do
-        backup_file "$DEST_SHARE" "$file"
+        if [[ "$DEST_SHARE" != "$DEST_ROOT" ]] && [[ "$DEST_SHARE" != "$DEST_SBIN" ]]; then
+            backup_file "$DEST_SHARE" "$file"
+        fi
         install_path "$file" "$DEST_SHARE" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
     #Include the sch-scripts.py
     for file in "$PROJECT_ROOT"/*; do
         # Exclude configs, ui and scripts directories
         if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then
-            backup_file "$DEST_ROOT" "$file"
-            install_path "$file" "$DEST_ROOT" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+           install_path "$file" "$DEST_ROOT" || { echo "$ERROR_MOVE_FILES"; exit 1; }
         fi
     done
 
     for file in "$PROJECT_SBIN"/*; do
-        backup_file "$DEST_SBIN" "$file"
-        install_path "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+       install_path "$file" "$DEST_SBIN" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
     #Include the config files
     for file in "$PROJECT_CONFIGS"/*; do
-        backup_file "$DEST_CONFIGS" "$file"
         install_path "$file" "$DEST_CONFIGS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
     #Include the ui files
     for file in "$PROJECT_UI"/*; do
-        backup_file "$DEST_UI" "$file"
         install_path "$file" "$DEST_UI" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
     #Include the script files
     for file in "$PROJECT_BINS"/*; do
-        backup_file "$DEST_BINS" "$file"
         install_path "$file" "$DEST_BINS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
 
@@ -258,13 +259,19 @@ revert_files() {
 
     # Revert files
     for file in "$PROJECT_ETC"/*; do
-        revert_file "$DEST_ETC" "$file"
+         if [[ "$DEST_ETC" != "$DEST_ROOT" ]] && [[ "$DEST_ETC" != "$DEST_SBIN" ]]; then
+            revert_file "$DEST_ETC" "$file"
+        fi
     done
     for file in "$PROJECT_LIB"/*; do
-        revert_file "$DEST_LIB" "$file"
+         if [[ "$DEST_LIB" != "$DEST_ROOT" ]] && [[ "$DEST_LIB" != "$DEST_SBIN" ]]; then
+            revert_file "$DEST_LIB" "$file"
+        fi
     done
     for file in "$PROJECT_SHARE"/*; do
-        revert_file "$DEST_SHARE" "$file"
+         if [[ "$DEST_SHARE" != "$DEST_ROOT" ]] && [[ "$DEST_SHARE" != "$DEST_SBIN" ]]; then
+            revert_file "$DEST_SHARE" "$file"
+         fi
     done
     #Revert the sch-scripts files
     for file in "$PROJECT_ROOT"/*; do
