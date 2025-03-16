@@ -39,6 +39,7 @@ PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
 PROJECT_BACKGROUNDS="share/background/School-Wallpapers"
 DEST_BACKGROUNDS="/usr/share/backgrounds"
+DEST_SCHOOL_BACKGROUNDS="/usr/share/backgrounds/School-Wallpapers"
 
 # Dependencies
 DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
@@ -194,7 +195,7 @@ get_mode() {
     if [[ "$current_theme" == *"$theme"* ]]; then
       is_dark=true
       break 
-    fi
+        fi
   done
 
   if "$is_dark"; then
@@ -213,20 +214,9 @@ install_wallpapers() {
 
   for server in "${SERVER_WALLPAPERS[@]}"; do
     if [[ "$hostname" == "$server" ]]; then
-      wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
-      install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/School-Wallpapers/$wallpaper_file" || { echo -e "\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\e[0m"; exit 1; }
-      break     
-    fi    
-  done
-}
-
-#Configure LightDM
-configure_lightdm() {
-    local hostname wallpaper_file mode
-    SERVER_WALLPAPERS=("1ek-volou") #Add server names here
-    hostname=$(get_hostname)
-    mode=$(get_mode)
-    # Check if hostname is in the list of servers with custom wallpapers
+            wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
+            install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_SCHOOL_BACKGROUNDS/$wallpaper_file" || { echo -e "\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\e[0m"; exit 1; }
+            break
     for server in "${SERVER_WALLPAPERS[@]}"; do
       if [[ "$hostname" == "$server" ]]; then
         wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
@@ -236,6 +226,7 @@ configure_lightdm() {
         break
       fi
     done
+    fi
 }
 
 # Detect the user with id 1000 (the first normal user):
@@ -247,7 +238,7 @@ detect_administrator() {
 
 #start_shared_folders service
 start_shared_folders_service() { 
-    echo -e "\e[1mΕκκίνηση shared-folders.service...\e[0m"
+    echo -e "\e[1mΕκκίνηση shared-folders.service...\e[0m"    
     systemctl start shared-folders.service || { echo -e "\e[1mΣφάλμα: Αποτυχία εκκίνησης του shared-folders.service.\e[0m"; exit 1;}
     echo -e "\e[1mΤο shared-folders.service ξεκίνησε με επιτυχία.\e[0m"
 }
@@ -383,13 +374,13 @@ revert_files() {
     revert_file "$DEST_SBIN" "sbin/shared-folders"
 
     #Revert shared-folders.service
-    rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
+    rm -f "$DEST_ETC/systemd/system/shared-folders.service"
     #Revert shared-folders
     rm -rf "$DEST_SBIN/shared-folders"
     #Revert wallpaper
     rm -rf "$DEST_BACKGROUNDS/School-Wallpapers"/*
 
-
+    
     echo -e "\e[1mΟι αλλαγές στα αρχεία επαναφέρθηκαν με επιτυχία.\e[0m"
 }
 
@@ -409,8 +400,24 @@ install_sch() {
     if [[ "$hostname" == "1ek-volou" ]]; then
       #Install the wallpapers
       install_wallpapers
-      #Configure LightDM
-      configure_lightdm
+     #Configure LightDM
+      # Check if lightdm.conf exists.
+      if [[ -f /etc/lightdm/lightdm.conf ]]; then
+          # Check if greeter-session is set.
+          if ! grep -q "^greeter-session" /etc/lightdm/lightdm.conf; then
+              # Add greeter-session=lightdm-gtk-greeter
+              echo "greeter-session=lightdm-gtk-greeter" >> /etc/lightdm/lightdm.conf
+          else
+              # Check if greeter-session is different than lightdm-gtk-greeter
+              if ! grep -q "^greeter-session=lightdm-gtk-greeter" /etc/lightdm/lightdm.conf; then
+                  sed -i "s/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/" /etc/lightdm/lightdm.conf
+              fi
+          fi
+      fi
+      # Set the wallpaper using gsettings.
+      mode=$(get_mode)
+      wallpaper_file="file:///usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
+      gsettings set com.canonical.unity-greeter background "$wallpaper_file" || { echo -e "\e[1mΣφάλμα: Αδυναμία αλλαγής του φόντου σε LightDM\e[0m"; exit 1; }
     fi
     #Start the service
     start_shared_folders_service
@@ -424,7 +431,7 @@ remove_sch() {
     #Remove dependencies
     remove_dependencies
     echo -e "\e[1mΟι εξαρτήσεις απεγκαταστάθηκαν με επιτυχία.\e[0m"
-    #revert files
+    #revert files  
     revert_files
     
     echo -e "\e[1mΗ επαναφορά των sch-scripts ολοκληρώθηκε με επιτυχία!\e[0m"
