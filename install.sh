@@ -43,6 +43,9 @@ PACKAGE_ROOT="/usr/share/sch-scripts"
 # Dependencies
 DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools"
 
+# Uninstall Dependencies
+UNINSTALL_DEPENDENCIES="epoptes openssh-server bindfs ltsp net-tools nfs-kernel-server"
+
 # Error messages
 ERROR_INSTALL_DEPENDENCIES="Error: Failed to install dependencies."
 ERROR_MOVE_FILES="Error: Failed to move files to their destinations."
@@ -123,7 +126,7 @@ install_dependencies() {
 
 #remove-dependencies
 remove_dependencies() {
-    apt-get remove  --allow-remove-essential $DEPENDENCIES || {
+    apt-get remove  --allow-remove-essential $UNINSTALL_DEPENDENCIES || {
         echo "$ERROR_REMOVE_DEPENDENCIES"
         exit 1
     }
