@@ -149,19 +149,27 @@ configure_teachers() {
 detect_administrator() {
     administrator="$(id -u 1000 >/dev/null && id -un 1000)"
 }
-start_services() {
-    
-    systemctl start shared-folders.service || {
+start_services() {   
+    systemctl enable shared-folders.service || {
+        echo "Error: Failed to enable shared-folders.service."
+        exit 1
+    }
+    systemctl enable user-defaults.service || {
+        echo "Error: Failed to enable user-defaults.service."
+        exit 1
+    }
+    systemctl start shared-folders.service && echo "shared-folders.service enabled successfully." || {
         echo "Error: Failed to start shared-folders.service."
         exit 1
     }
-    echo "shared-folders.service started successfully."
 
-    systemctl start user-defaults.service || {
+    systemctl daemon-reload
+    
+    systemctl start user-defaults.service && echo "user-defaults.service started successfully." || {
         echo "Error: Failed to start user-defaults.service."
         exit 1
     }
-    echo "user-defaults.service started successfully."
+    
 }
 create_public_folder() {
     echo "Creating the public folder..."
@@ -218,6 +226,10 @@ install_files() {
         echo "Failed to create /etc/systemd/system/shared-folders.service"
         exit 1
     }
+    sed -i 's|After=graphical-session.target|After=shared-folders.service|g' "$DEST_ETC/systemd/system/user-defaults.service"
+    sed -i 's|WantedBy=graphical-session.target|WantedBy=multi-user.target|g' "$DEST_ETC/systemd/system/user-defaults.service"
+    sed -i 's|Type=simple|Type=forking|g' "$DEST_ETC/systemd/system/user-defaults.service"
+    sed -i '$aPartOf=graphical-session.target' "$DEST_ETC/systemd/system/user-defaults.service"
     install -o root -g root -m 0644 "etc/systemd/system/user-defaults.service" "$DEST_ETC/systemd/system/user-defaults.service" || {
         echo "Failed to create /etc/systemd/system/user-defaults.service"
         exit 1
@@ -230,7 +242,6 @@ install_files() {
         echo "Failed to create /usr/sbin/user-defaults."
         exit 1
     }
-    systemctl daemon-reload
     echo "Files moved successfully."
 } 
 revert_files() {
