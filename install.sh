@@ -424,15 +424,18 @@ install_sch() {
             fi
             #Check if the file exist
             if [[ -f /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf ]]; then
-                # Check if the line exists in the file
-                if grep -q "^background=" /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf; then
-                    # Comment out the existing background line
-                    sed -i "s|^background=.*|#&|" /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
+                #Read the file
+                file_content=$(cat /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf)
+                #check if the line exist
+                if echo "$file_content" | grep -q "background="; then
+                   #comment out the line background=
+                   sed -i 's/^\(background=\).*/#\1/' /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
                 fi
-                # Append the new background line if it does not exist
-                if ! grep -q "^background=$wallpaper_file" /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf; then
-                  echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
-                fi
+                 # Append the new background line if it does not exist
+                 if ! echo "$file_content" | grep -q "background=$wallpaper_file"; then
+                     echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
+                 fi
+
             else
                 # Append the background line to the new file if it does not exist
                 if ! grep -q "^background=$wallpaper_file" /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf; then
