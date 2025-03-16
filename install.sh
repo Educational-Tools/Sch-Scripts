@@ -211,15 +211,19 @@ get_mode() {
 
 # Install wallpapers
 install_wallpapers() {
-  local hostname wallpaper_file mode
+  local hostname wallpaper_file mode project_root
   SERVER_WALLPAPERS=("1ek-volou") #Add server names here
   hostname=$(get_hostname)
   mode=$(get_mode)
 
+  # Get the root directory of the project
+  project_root=$(pwd)
+
   for server in "${SERVER_WALLPAPERS[@]}"; do
     if [[ "$hostname" == "$server" ]]; then
       wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
-      install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/School-Wallpapers/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
+      # Use the full path to the wallpaper file
+      install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/School-Wallpapers/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
       break
     fi
   done
