@@ -226,10 +226,8 @@ install_files() {
         echo "Failed to create /etc/systemd/system/shared-folders.service"
         exit 1
     }
+    sed -i 's|Type=simple|Type=forking|g' "$DEST_ETC/systemd/system/user-defaults.service" 
     sed -i 's|After=graphical-session.target|After=shared-folders.service|g' "$DEST_ETC/systemd/system/user-defaults.service"
-    sed -i 's|WantedBy=graphical-session.target|WantedBy=multi-user.target|g' "$DEST_ETC/systemd/system/user-defaults.service"
-    sed -i 's|Type=simple|Type=forking|g' "$DEST_ETC/systemd/system/user-defaults.service"
-    sed -i '$aPartOf=graphical-session.target' "$DEST_ETC/systemd/system/user-defaults.service"
     install -o root -g root -m 0644 "etc/systemd/system/user-defaults.service" "$DEST_ETC/systemd/system/user-defaults.service" || {
         echo "Failed to create /etc/systemd/system/user-defaults.service"
         exit 1
@@ -238,7 +236,7 @@ install_files() {
         echo "Failed to create /usr/sbin/shared-folders."
         exit 1
     }
-    install -o root -g root -m 0755 "sbin/user-defaults" "$DEST_SBIN/user-defaults" || {
+    install -o root -g root -m 0755 "sbin/user-defaults" "$DEST_SBIN/" || {
         echo "Failed to create /usr/sbin/user-defaults."
         exit 1
     }
