@@ -110,7 +110,7 @@ class SharedFolders:
         adm_uid=int(self.config["ADM_UID"])
         self.ensure_dir(self.config["SHARE_DIR"], 0o711,
             adm_uid, int(self.config["ADM_GID"]))
-        self.ensure_dir(self.config["SHARE_DIR"] + "/.symlinks", 0o731, 
+        self.ensure_dir(self.config["SHARE_DIR"] + "/.symlinks", 0o731,
             adm_uid, self.system.groups[self.config["TEACHERS"]].gid)
         for group in groups:
             dir=self.config["SHARE_DIR"] + "/" + group
