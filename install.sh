@@ -174,6 +174,11 @@ configure_teachers() {
         done
         ln -sf "$PUBLIC_DIR" "$home_dir/Public/Public"
     fi
+
+    # Ensure the administrator is in the epoptes group
+    if ! groups "$administrator" | grep -wq "epoptes"; then
+        usermod -aG epoptes "$administrator"
+    fi
 }
 
 #Get the hostname
@@ -405,10 +410,12 @@ install_sch() {
               fi
           fi
       fi
-      # Set the wallpaper using gsettings.
+      # Set the wallpaper using dconf.
       mode=$(get_mode)
-      wallpaper_file="file:///usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
-      gsettings set com.canonical.unity-greeter background "$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής του φόντου σε LightDM\\e[0m"; exit 1; }
+      wallpaper_file="/usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
+      dconf write /com/canonical/unity-greeter/background "'$wallpaper_file'" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής του φόντου σε LightDM\\e[0m"; exit 1; }
+      # Restart LightDM to ensure the configuration is reloaded.
+      systemctl restart lightdm || { echo -e "\\e[1mΣφάλμα: Αποτυχία επανεκκίνησης του LightDM.\\e[0m"; exit 1; }
     fi
     #Start the service
     start_shared_folders_service
