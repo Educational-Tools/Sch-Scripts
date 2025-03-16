@@ -151,7 +151,6 @@ configure_teachers() {
     local before after old_ifs teacher teacher_home
 
     # Create "teachers" group and add the administrator to epoptes,teachers
-    test -f "$DEST_ETC/default/shared-folders" && . "$DEST_ETC/default/shared-folders"
     test -n "$TEACHERS" || return 0
     # If the group doesn't exist, create it and add the administrator
     if ! getent group "$TEACHERS" >/dev/null; then
@@ -190,16 +189,6 @@ start_shared_folders_service() {
     systemctl status shared-folders.service
 }
 
-#This is the equivalent of cmdline in the old initial-setup.sh
-prompt() {
-    local conf _dummy
-
-    conf=/var/lib/sch-scripts/initial-setup.conf
-    mkdir -p "${conf%/*}"
-    printf \
-        "# This file is regenerated when /usr/share/sch-scripts/initial-setup.sh runs.\n\n# Remember the last version ran, to answer the --check parameter:\nLAST_VERSION=%s\n" "$_VERSION" >"$conf"
-}
-
 #install files
 install_files() {
     echo "Moving files to their destinations..."
@@ -207,9 +196,14 @@ install_files() {
     # Create directories
     mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_ROOT" "$DEST_CONFIGS" "$DEST_UI" "$DEST_BINS"
 
+    # Create /etc/default/shared-folders from default
+    if [ ! -f "$DEST_ETC/default/shared-folders" ]; then
+        install -o root -g root -m 0644 "$PROJECT_ETC/default/shared-folders.default" "$DEST_ETC/default/shared-folders" || { echo "$ERROR_MOVE_FILES"; exit 1; }
+    fi
+
     # Move files
     for file in "$PROJECT_ETC"/*; do
-         if [[ "$DEST_ETC" != "$DEST_ROOT" ]] && [[ "$DEST_ETC" != "$DEST_SBIN" ]]; then
+         if [[ "$DEST_ETC" != "$DEST_ROOT" ]] && [[ "$DEST_ETC" != "$DEST_SBIN" ]] && [[ "$file" != "$PROJECT_ETC/default/shared-folders.default" ]]; then
             backup_file "$DEST_ETC" "$file"
         fi
         install_path "$file" "$DEST_ETC" || { echo "$ERROR_MOVE_FILES"; exit 1; }
@@ -251,7 +245,17 @@ install_files() {
     for file in "$PROJECT_BINS"/*; do
         install_path "$file" "$DEST_BINS" || { echo "$ERROR_MOVE_FILES"; exit 1; }
     done
-
+    #Move shared-folders.service
+    install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
+        echo "Failed to create /etc/systemd/system/shared-folders.service"
+        exit 1
+    }
+    #Move shared-folders
+    install -o root -g root -m 0755 "sbin/shared-folders" "$DEST_SBIN/shared-folders" || {
+        echo "Failed to create /usr/sbin/shared-folders."
+        exit 1
+    }
+    systemctl daemon-reload
     echo "Files moved successfully."
 }
 
@@ -297,6 +301,10 @@ revert_files() {
     for file in "$PROJECT_BINS"/*; do
         revert_file "$DEST_BINS" "$file"
     done
+    #Revert shared-folders.service
+    revert_file "$DEST_ETC/systemd/system" "etc/systemd/system/shared-folders.service"
+    #Revert shared-folders
+    revert_file "$DEST_SBIN" "sbin/shared-folders"
 
     echo "File changes reverted successfully."
 }
@@ -309,36 +317,13 @@ install_sch() {
     echo "Dependencies installed successfully."
     #install files
     install_files
-    #This is the prompt
-    prompt
     #This are the configurations
     configure_ltsp
     configure_teachers
-    #Create the service
-    create_service
     #Start the service
     start_shared_folders_service
 
     echo "Installation of sch-scripts completed successfully!"
-}
-#Create the service
-create_service() {
-    # Ensure shared-folders script exists and is executable
-    if [ ! -f "$DEST_SBIN/shared-folders" ]; then
-        install -o root -g root -m 0755 "sbin/shared-folders" "$DEST_SBIN/shared-folders" || {
-            echo "Failed to create /usr/sbin/shared-folders."
-            exit 1
-        }
-    fi
-    #Create the service
-    if [ ! -f "$DEST_ETC/systemd/system/shared-folders.service" ]; then
-        install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
-        echo "Failed to create /etc/systemd/system/shared-folders.service"
-        exit 1
-        }
-        systemctl daemon-reload
-    fi
-
 }
 
 #remove function
