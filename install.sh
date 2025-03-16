@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# --- Setup and Error Handling ---
+# --- Setup and Error Handling and functions ---
 
 # Check if running with sudo, prompt for password if needed
 if [[ $EUID -ne 0 ]]; then
@@ -37,6 +37,8 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
+PROJECT_BACKGROUNDS="share/backgrounds"
+DEST_BACKGROUNDS="/usr/share/backgrounds"
 
 # Dependencies
 DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
@@ -162,7 +164,7 @@ configure_teachers() {
     #Create the symlinks:
     # Find the home directory for the administrator
     home_dir=$(getent passwd "$administrator" | cut -d: -f6)
-
+    
     # Create symlinks
     if [ -d "$home_dir" ]; then
         for dir in "$SHARE_DIR"/*; do
@@ -173,10 +175,54 @@ configure_teachers() {
         ln -sf "$PUBLIC_DIR" "$home_dir/Public/Public"
     fi
 }
-#common.sh functions
-#common.sh functions
+
+#Get the hostname
+get_hostname() {
+  hostname
+}
+
+#Get the theme mode
+get_mode() {
+  local current_theme
+  local dark_themes=("Adwaita-dark" "Yaru-dark" "Dark")
+  local light_themes=("Adwaita" "Yaru" "Light")
+  current_theme=$(gsettings get org.gnome.desktop.interface gtk-theme)
+  current_theme=${current_theme//\'/}
+
+  local is_dark=false
+  for theme in "${dark_themes[@]}"; do
+    if [[ "$current_theme" == *"$theme"* ]]; then
+      is_dark=true
+      break
+    fi
+  done
+
+  if "$is_dark"; then
+    echo "dark"
+  else
+    echo "light"
+  fi
+}
+
+# Install wallpapers
+install_wallpapers() {
+  local hostname wallpaper_file mode
+  SERVER_WALLPAPERS=("1ek-volou") #Add server names here
+  hostname=$(get_hostname)
+  mode=$(get_mode)
+
+  for server in "${SERVER_WALLPAPERS[@]}"; do
+    if [[ "$hostname" == "$server" ]]; then
+      wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
+      install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/$wallpaper_file" || { echo "Error: Failed to move files to their destinations."; exit 1; }      
+      break
+    fi
+  done
+}
+
 # Detect the user with id 1000 (the first normal user):
 detect_administrator() {
+  # Detect the administrator user
     # shellcheck disable=SC2034
     administrator="$(id -u 1000 >/dev/null && id -un 1000)"
 }
@@ -186,6 +232,25 @@ start_shared_folders_service() {
     echo "Starting shared-folders.service..."
     systemctl start shared-folders.service || {
         echo "Error: Failed to start shared-folders.service."
+        exit 1
+    }
+    echo "shared-folders.service started successfully."
+}
+
+#Set default wallpaper
+set_default_wallpaper() {
+  local hostname wallpaper_file mode
+  SERVER_WALLPAPERS=("1ek-volou") #Add server names here
+  hostname=$(get_hostname)
+  mode=$(get_mode)
+    for server in "${SERVER_WALLPAPERS[@]}"; do
+        if [[ "$hostname" == "$server" ]]; then
+            wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
+            # Loop through the users to set the wallpaper
+           find /home/ -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d $'\0' dir; do
+             user=$(basename "$dir")
+             if [ "$user" != "Shared" ]; then
+          gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/$wallpaper_file" || echo "Error: Could not change the wallpaper"
         exit 1
     }
     echo "shared-folders.service started successfully."
@@ -321,6 +386,14 @@ revert_files() {
     #Revert shared-folders
     revert_file "$DEST_SBIN" "sbin/shared-folders"
 
+    #Revert wallpaper
+    rm -rf "$DEST_BACKGROUNDS"/*
+    #Revert shared-folders.service
+    rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
+    #Revert shared-folders
+    rm -rf "$DEST_SBIN/shared-folders"
+
+
     echo "File changes reverted successfully."
 }
 
@@ -336,6 +409,14 @@ install_sch() {
     create_public_folder
     #This are the configurations
     configure_teachers
+    #Install the wallpapers if the hostname is right
+    hostname=$(get_hostname)
+    if [[ "$hostname" == "1ek-volou" ]]; then
+      #Install the wallpapers
+      install_wallpapers
+      #Set the default wallpaper
+      set_default_wallpaper
+    fi
     #Start the service
     start_shared_folders_service
 
