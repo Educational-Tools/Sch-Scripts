@@ -39,6 +39,7 @@ PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
 PROJECT_BACKGROUNDS="share/backgrounds/School-Wallpapers" # Corrected line
 DEST_BACKGROUNDS="/usr/share/backgrounds"
+DEST_LINUXMINT_WALLPAPERS="/usr/share/backgrounds/linuxmint"
 
 # Dependencies
 DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
@@ -219,20 +220,34 @@ install_wallpapers() {
   local hostname wallpaper_file mode project_root
   SERVER_WALLPAPERS=("1ek-volou") #Add server names here
   hostname=$(get_hostname)
-  mode=$(get_mode)
-
+    mode=$(get_mode)
   # Get the root directory of the project
   project_root=$(pwd)
 
   for server in "${SERVER_WALLPAPERS[@]}"; do
         if [[ "$hostname" == "$server" ]]; then
             wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
+            
+            # Create the directory if it does not exists
+            mkdir -p "$DEST_LINUXMINT_WALLPAPERS" 
+            
+            #Check if the default_linuxmint.png exists and rename it
+            if [[ -f "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" ]]; then
+                mv "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png.bak"
+            fi
+            
             # Use the full path to the wallpaper file.
-            install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/School-Wallpapers/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
+            install -o root -g root -m 0644 "$project_root/$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
+           
+            # Copy the selected wallpaper to default_linuxmint.png
+            cp "$DEST_LINUXMINT_WALLPAPERS/$wallpaper_file" "$DEST_LINUXMINT_WALLPAPERS/default_linuxmint.png" || { echo -e "\\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\\e[0m"; exit 1; }
+           
+            # Set permissions for the directory
+            chmod 755 "$DEST_LINUXMINT_WALLPAPERS" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής των δικαιωμάτων του καταλόγου $DEST_LINUXMINT_WALLPAPERS.\\e[0m"; exit 1; }
             break
         fi    
    
-    done
+  done
 }
 
 # Detect the user with id 1000 (the first normal user):
@@ -384,8 +399,9 @@ revert_files() {
     #Revert shared-folders
     rm -rf "$DEST_SBIN/shared-folders"
     #Revert wallpaper
-    rm -rf "$DEST_BACKGROUNDS/School-Wallpapers"/*
-    #Remove the added file
+
+    #Remove the lightdm changes
+
     rm -rf /etc/lightdm/lightdm-gtk-greeter.conf.d/98-sch-scripts.conf
     rm -rf /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf
 
@@ -409,54 +425,40 @@ install_sch() {
     if [[ "$hostname" == "1ek-volou" ]]; then
         #Install the wallpapers
         install_wallpapers
-        # Set the permissions of the wallpaper directory
-        chmod 755 "$DEST_BACKGROUNDS/School-Wallpapers" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής των δικαιωμάτων του καταλόγου School-Wallpapers.\\e[0m"; exit 1; }
         #Configure LightDM
-        # Check if lightdm.conf exists.
-        if [[ -f /etc/lightdm/lightdm.conf ]]; then
-            # Check if greeter-session is set.
-            if ! grep -q "^greeter-session" /etc/lightdm/lightdm.conf; then
-                # Add greeter-session=lightdm-gtk-greeter
-                echo "greeter-session=lightdm-gtk-greeter" >> /etc/lightdm/lightdm.conf
-            else
-                # Check if greeter-session is different than lightdm-gtk-greeter
-                if ! grep -q "^greeter-session=lightdm-gtk-greeter" /etc/lightdm/lightdm.conf; then
-                    sed -i "s/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/" /etc/lightdm/lightdm.conf
-                fi
-            fi
-        fi
+          # Check if lightdm.conf exists.
+          if [[ -f /etc/lightdm/lightdm.conf ]]; then
+              # Check if greeter-session is set.
+              if ! grep -q "^greeter-session" /etc/lightdm/lightdm.conf; then
+                  # Add greeter-session=lightdm-gtk-greeter
+                  echo "greeter-session=lightdm-gtk-greeter" >> /etc/lightdm/lightdm.conf
+              else
+                  # Check if greeter-session is different than lightdm-gtk-greeter
+                  if ! grep -q "^greeter-session=lightdm-gtk-greeter" /etc/lightdm/lightdm.conf; then
+                      sed -i "s/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/" /etc/lightdm/lightdm.conf
+                  fi
+              fi
+          fi
         #Check if lightdm is running
         if systemctl is-active --quiet lightdm; then
-            # Set the wallpaper using dconf.
           mode=$(get_mode)
-          wallpaper_file="/usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
-          #Check if lightdm.conf exists.
-            if [[ -f /etc/lightdm/lightdm.conf ]]; then
-               if [[ "$mode" == "light" ]]; then
-                   sed -i "/^\[Seat:\*\]/a background=$wallpaper_file" /etc/lightdm/lightdm.conf
-               else
-                   sed -i "/^\[Seat:\*\]/a background=$wallpaper_file" /etc/lightdm/lightdm.conf
-               fi
-               #Check if the lines exists
-               if ! grep -q "^greeter-hide-users=false" /etc/lightdm/lightdm.conf; then
-                  #add greeter-hide-users=false
-                    sed -i "/^\[Seat:\*\]/a greeter-hide-users=false" /etc/lightdm/lightdm.conf
-               fi
-               if ! grep -q "^autologin-user=testuser" /etc/lightdm/lightdm.conf; then
-                  #Add autologin-user=testuser
-                  sed -i "/^\[Seat:\*\]/a autologin-user=testuser" /etc/lightdm/lightdm.conf
-               fi
-           else
-             echo -e "\\e[1mΣφάλμα: Το αρχείο /etc/lightdm/lightdm.conf δεν υπάρχει.\\e[0m"; exit 1;
-           fi
-
-        fi
+          wallpaper_file="/usr/share/backgrounds/linuxmint/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
+            sed -i "/^\[Seat:\*\]/s/^\(background=\).*/\1$wallpaper_file/" /etc/lightdm/lightdm.conf || sed -i "/^\[Seat:\*\]/a background=$wallpaper_file" /etc/lightdm/lightdm.conf
+                #Check if the lines exists
+                if ! grep -q "^greeter-hide-users=false" /etc/lightdm/lightdm.conf; then
+                   #add greeter-hide-users=false
+                     sed -i "/^\[Seat:\*\]/a greeter-hide-users=false" /etc/lightdm/lightdm.conf
+                fi
+                if ! grep -q "^autologin-user=testuser" /etc/lightdm/lightdm.conf; then
+                   #Add autologin-user=testuser
+                   sed -i "/^\[Seat:\*\]/a autologin-user=testuser" /etc/lightdm/lightdm.conf
+                fi
+            fi
+        
         
     else
         echo -e "\\e[1mΗ εγκατάσταση δεν είναι στο server 1ek-volou. Εξοδος.\\e[0m"
         return 0
-
-        fi
     fi
     #Start the service
     start_shared_folders_service
@@ -473,6 +475,8 @@ remove_sch() {
     #revert files
     revert_files
     
+    
+
     echo -e "\\e[1mΗ επαναφορά των sch-scripts ολοκληρώθηκε με επιτυχία!\\e[0m"
 }
 
