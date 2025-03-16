@@ -38,13 +38,15 @@ PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
 
-PACKAGE_ROOT="/usr/share/sch-scripts"
-
 # Dependencies
-DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools"
+DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
 
 # Uninstall Dependencies
-UNINSTALL_DEPENDENCIES="epoptes openssh-server bindfs ltsp net-tools nfs-kernel-server"
+UNINSTALL_DEPENDENCIES="epoptes openssh-server net-tools symlinks"
+
+# Configurations variables
+SHARE_DIR="/home/Shared"
+PUBLIC_DIR="/home/Shared/Public"
 
 # Error messages
 ERROR_INSTALL_DEPENDENCIES="Error: Failed to install dependencies."
@@ -134,18 +136,6 @@ remove_dependencies() {
     }
 }
 
-#ltsp configurations
-configure_ltsp() {
-    command -v ltsp >/dev/null || return 0
-    mkdir -p /etc/ltsp
-    if [ ! -f /etc/ltsp/ltsp.conf ]; then
-        install -o root -g root -m 0660 "$DEST_CONFIGS/ltsp.conf" /etc/ltsp/ltsp.conf
-    fi
-    rm -f /etc/dnsmasq.d/ltsp-server-dnsmasq.conf
-    test -f /etc/dnsmasq.d/ltsp-dnsmasq.conf || ltsp dnsmasq
-    test -f /etc/exports.d/ltsp-nfs.exports || ltsp nfs
-}
-
 #teachers configuration
 configure_teachers() {
     local before after old_ifs teacher teacher_home
@@ -169,6 +159,18 @@ configure_teachers() {
             adduser "$administrator" "$TEACHERS"
         fi
     fi
+    #Create the symlinks:
+    # Find the home directory for the administrator
+    home_dir=$(getent passwd "$administrator" | cut -d: -f6)
+
+    # Create symlinks
+    if [ -d "$home_dir" ]; then
+        for dir in "$SHARE_DIR"/*; do
+            group=$(basename "$dir")
+            # Create symlinks
+            ln -sf "$SHARE_DIR/$group" "$home_dir/Public/$group"
+        fi
+    fi
 }
 
 #common.sh functions
@@ -187,6 +189,17 @@ start_shared_folders_service() {
     }
     echo "shared-folders.service started successfully."
     systemctl status shared-folders.service
+}
+
+#Create the public folder
+create_public_folder() {
+    echo "Creating the public folder..."
+    mkdir -p "$PUBLIC_DIR"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to create $PUBLIC_DIR."
+        exit 1
+    fi
+    chmod 0777 "$PUBLIC_DIR"
 }
 
 #install files
@@ -302,6 +315,8 @@ revert_files() {
         revert_file "$DEST_BINS" "$file"
     done
     #Revert shared-folders.service
+    rm -rf "$PUBLIC_DIR"
+    
     revert_file "$DEST_ETC/systemd/system" "etc/systemd/system/shared-folders.service"
     #Revert shared-folders
     revert_file "$DEST_SBIN" "sbin/shared-folders"
@@ -317,8 +332,9 @@ install_sch() {
     echo "Dependencies installed successfully."
     #install files
     install_files
+    #Create public directory
+    create_public_folder
     #This are the configurations
-    configure_ltsp
     configure_teachers
     #Start the service
     start_shared_folders_service

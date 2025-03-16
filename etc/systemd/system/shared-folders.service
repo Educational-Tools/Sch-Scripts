@@ -7,16 +7,10 @@ Documentation=man:shared-folders(8)
 After=network-online.target home.mount
 Wants=network-online.target
 
-# Parts copied from rc-local.service
 [Service]
-Type=forking
-ExecStart=/usr/sbin/shared-folders mount
-ExecReload=/usr/sbin/shared-folders mount
-ExecStop=/usr/sbin/shared-folders unmount
-TimeoutStartSec=0
-TimeoutStopSec=10
+Type=oneshot
+ExecStart=/usr/sbin/shared-folders
 RemainAfterExit=yes
-GuessMainPID=no
 
 [Install]
 WantedBy=multi-user.target

@@ -1,178 +1,60 @@
 #!/bin/sh
-# This file is part of sch-scripts, https://sch-scripts.gitlab.io
-# Copyright 2012-2022 the sch-scripts team, see AUTHORS
-# SPDX-License-Identifier: GPL-3.0-or-later
+
+# Ensure that the script is run as root
+if [[ $EUID -ne 0 ]]; then
+    echo "This script must be run as root" 1>&2
+    exit 1
+fi
+
+
+# Load the configuration
+if [ -f "/etc/default/shared-folders" ]; then
+    . /etc/default/shared-folders
+else
+    echo "Error: /etc/default/shared-folders not found." 1>&2
+    exit 1
+fi
+
+# Set default values in case the variables are not present in the config
+SHARE_GROUPS=${SHARE_GROUPS:-"teachers"}
+SHARE_DIR=${SHARE_DIR:-"/home/Shared"}
+PUBLIC_DIR=${PUBLIC_DIR:-"/home/Shared/Public"}
 
 usage() {
-    cat <<EOF
-Usage: $0 [OPTIONS]
-
-Upon login, it creates symlinks to the shared folders of every group that
-the user is a member of.
-If the user is in the TEACHERS group, it also creates a shared folder under
-~/Public for each one of his classes (groups).
-Finally, it gives read-only access to the TEACHERS group for his Desktop,
-Documents, Downloads, Music, Pictures, Templates and Videos directories.
-
-Options:
-  -h, --help  The application help page.
-EOF
+    echo "Usage: $0"
 }
 
-gt() {
-    local result
-
-    result=$(gettext -d xdg-user-dirs "$1" 2>/dev/null) || true
-    echo "${result:-$1}"
-}
-
-# Ensure the specified xdg directory exists
-ensure_xdg_dir() {
-    local var def_en value
-
-    var=$1
-    def_en=$2
-    eval "value=\$$var"
-    value=${value%/}
-    if [ "$value" = "$HOME" ]; then
-        value="$HOME/$(gt "$def_en")"
-        printf "WARNING: your %s directory was probably deleted in the past.
-You can restore its definition in %s/.config/user-dirs.dirs.
-Defaulting to %s.\n" \
-            "$var" "$HOME" "$value"
-    elif [ -z "$value" ]; then
-        value="$HOME/$(gt "$def_en")"
-    fi
-    mkdir -p "$value"
-    eval "$var='$value'"
-}
-
-get_xdg_dirs() {
-    USER=${USER:-$(id -un)}
-    if [ ! -d "$HOME" ]; then
-        export "HOME=$(getent passwd "$USER" | cut -d : -f 6)"
-        mkdir -p "$HOME"
-    fi
-    test -f "$HOME/.config/user-dirs.dirs" && . "$HOME/.config/user-dirs.dirs"
-    SHARE_DESCRIPTION=${SHARE_DESCRIPTION:-"$(gt Share)"}
-    ensure_xdg_dir XDG_DESKTOP_DIR Desktop
-    ensure_xdg_dir XDG_DOCUMENTS_DIR Documents
-    ensure_xdg_dir XDG_DOWNLOAD_DIR Downloads
-    ensure_xdg_dir XDG_MUSIC_DIR Music
-    ensure_xdg_dir XDG_PICTURES_DIR Pictures
-    ensure_xdg_dir XDG_PUBLICSHARE_DIR Public
-    ensure_xdg_dir XDG_TEMPLATES_DIR Templates
-    ensure_xdg_dir XDG_VIDEOS_DIR Videos
-}
-
-# Unfortunately chgrp "$TEACHER" only works for teachers
-set_dir_attributes() {
-    chgrp "$TEACHERS" "$XDG_DESKTOP_DIR" \
-        "$XDG_DOCUMENTS_DIR" "$XDG_DOWNLOAD_DIR" "$XDG_MUSIC_DIR" \
-        "$XDG_PICTURES_DIR" "$XDG_TEMPLATES_DIR" "$XDG_VIDEOS_DIR"
-    # XDG_PUBLICSHARE_DIR is left to its default group, $USER
-    chmod 750 "$XDG_DESKTOP_DIR" \
-        "$XDG_DOCUMENTS_DIR" "$XDG_DOWNLOAD_DIR" "$XDG_MUSIC_DIR" \
-        "$XDG_PICTURES_DIR" "$XDG_TEMPLATES_DIR" "$XDG_VIDEOS_DIR"
-    # XDG_PUBLICSHARE_DIR is left to its default mode, 755
-}
-
-ln_sf() {
-    local dst src
-    dst=$1
-    src=$2
-
-    if [ -e "$src" ]; then
-        if [ "$(stat -c %m "$SHARE_DIR/.shared-folders")" = "$SHARE_DIR" ]; then
-            # Fat clients use SSH_FOLLOW_SYMLINKS=True so [ -h ] doesn't work.
-            # But symlink deletion doesn't work either, so just assume the
-            # link is correct. `mv` semi-works, but it's not worth it.
-            return 0
-        elif [ -h "$src" ]; then
-            rm "$src"
-        else
-            mv "$src" "$(mktemp -u "$src-moved-by-sch-scripts-XXXX")"
-        fi
-    fi
-    ln -ns "$dst" "$src"
-}
-
-# We want:
-# ~/Public/a1 - Public
-# ~/Public/a1 - First teacher real name
-# ~/Public/a1 - Second teacher real name
-# ~/Public/a2 - First teacher real name
+# Create the symlinks for the folders
 create_symlinks() {
-    local teachers my_groups
-
-    # Delete old symlinks
-    find "$XDG_PUBLICSHARE_DIR/" -mindepth 1 -maxdepth 1 -type l -lname "$SHARE_DIR/*" -delete
-    # Create Public symlink to the user's desktop
-    ln_sf "$XDG_PUBLICSHARE_DIR" "$XDG_DESKTOP_DIR/${XDG_PUBLICSHARE_DIR##*/}"
-    teachers=" $(getent group "$TEACHERS" | cut -d : -f 4 | tr ',' ' ') "
-    my_groups=$(groups)
-    case " $my_groups " in
-    *" $TEACHERS "*) is_teacher=true ;;
-    esac
-    for group in $my_groups; do
-        # Check if shared folders are enabled for this group
-        case " $SHARE_GROUPS " in
-        *" $group "*) ;;
-        *) continue ;;
-        esac
-        belongs_in_a_shared_group=true
-        ln_sf "$SHARE_DIR/$group" "$XDG_PUBLICSHARE_DIR/$group - $SHARE_DESCRIPTION"
-        if [ "$is_teacher" = true ]; then
-            # Don't create a folder for the teachers group.
-            test "$group" = "$TEACHERS" && continue
-            mkdir -p "$XDG_PUBLICSHARE_DIR/$group"
-            chgrp "$group" "$XDG_PUBLICSHARE_DIR/$group"
-            chmod 750 "$XDG_PUBLICSHARE_DIR/$group"
-            # SSHFS reports errors when creating symlinks and follow_symlinks=true
-            ln_sf "$XDG_PUBLICSHARE_DIR/$group" "$SHARE_DIR/.symlinks/$group - $USER" 2>/dev/null || true
-        else
-            # Create a symlink to each teacher that belongs in this group.
-            group_members=" $(getent group "$group" | cut -d : -f 4 | tr ',' ' ') "
-            for teacher in $teachers; do
-                case "$group_members" in
-                *" $teacher "*)
-                    teacher_name=$(getent passwd "$teacher" | cut -d ':' -f 5 | cut -d ',' -f 1)
-                    teacher_name=${teacher_name:-$teacher}
-                    ln_sf "$SHARE_DIR/.symlinks/$group - $teacher" "$XDG_PUBLICSHARE_DIR/$group - $teacher_name"
-                    ;;
-                esac
-            done
+    echo "Creating symlinks for users..."
+    for user_dir in /home/*; do
+        user=$(basename "$user_dir")
+        if [[ ! -d "$user_dir" ]] || [[ "$user" == "Shared" ]]; then
+            continue
         fi
+
+        # Ensure the Public directory exists
+        mkdir -p "$user_dir/Public"
+
+        # Create symlink to Public folder
+        ln -sf "$PUBLIC_DIR" "$user_dir/Public/Public"
+
+        # Create symlinks for each group
+        for group in $SHARE_GROUPS; do
+            if [ -d "$SHARE_DIR/$group" ]; then
+                ln -sf "$SHARE_DIR/$group" "$user_dir/Public/$group"
+            fi
+        done
     done
+    echo "Symlinks created successfully."
 }
 
+# Check for the arguments
 set -e
-
 if [ $# -ne 0 ]; then
-    case "$1" in
-    -h | --help)
-        usage
-        exit 0
-        ;;
-    *)
-        usage >&2
-        exit 1
-        ;;
-    esac
+    usage
+    exit 1
 fi
 
-# Don't run on LTSP5 clients. See /usr/share/ldm/rc.d/X50-create-symlinks
-test -n "$LTSP_CLIENT" && exit 0
-
-. /etc/default/shared-folders
-TEACHERS=${TEACHERS:-teachers}
-# For fat clients, try to get a newer version of SHARE_GROUPS by using
-# the LOCALAPPS_EXTRA_MOUNT mount.
-if [ -f "$SHARE_DIR/.shared-folders" ]; then
-    . "$SHARE_DIR/.shared-folders" 2>/dev/null || true
-fi
-get_xdg_dirs
+# Run the symlinks creation
 create_symlinks
-if [ "$belongs_in_a_shared_group" = true ] && [ "$is_teacher" = true ]; then
-    set_dir_attributes
-fi
