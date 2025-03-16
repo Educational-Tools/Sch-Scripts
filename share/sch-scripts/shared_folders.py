@@ -75,7 +75,7 @@ class SharedFolders:
 
     def unmount(self, group):
         """Unmount the folders for the specified groups."""
-        dir = self.config["SHARE_DIR/"] + group
+        dir = self.config["SHARE_DIR"] + "/" + group
         # Unmount without removing it.
         if os.path.ismount(dir):
             subprocess.call(["umount", dir])
@@ -110,10 +110,10 @@ class SharedFolders:
         adm_uid=int(self.config["ADM_UID"])
         self.ensure_dir(self.config["SHARE_DIR"], 0o711,
             adm_uid, int(self.config["ADM_GID"]))
-        self.ensure_dir(self.config["SHARE_DIR/"] + ".symlinks", 0o731,
+        self.ensure_dir(self.config["SHARE_DIR"] + "/.symlinks", 0o731,
             adm_uid, self.system.groups[self.config["TEACHERS"]].gid)
         for group in groups:
-            dir=self.config["SHARE_DIR/"] + group
+            dir=self.config["SHARE_DIR"] + "/" + group
             group_gid=self.system.groups[group].gid
             self.ensure_dir(dir, 0o770, adm_uid, group_gid)
             subprocess.call(["bindfs",
