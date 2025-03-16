@@ -251,7 +251,6 @@ start_shared_folders_service() {
     systemctl start shared-folders.service || { echo -e "\e[1mΣφάλμα: Αποτυχία εκκίνησης του shared-folders.service.\e[0m"; exit 1;}
     echo -e "\e[1mΤο shared-folders.service ξεκίνησε με επιτυχία.\e[0m"
 }
-}
 
 #Create the public folder
 create_public_folder() { 
