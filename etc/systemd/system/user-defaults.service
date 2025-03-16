@@ -1,0 +1,13 @@
+---
+# This is the content for the /etc/systemd/system/user-defaults.service file.
+[Unit]
+Description=User Defaults Service
+After=graphical-session.target
+
+[Service]
+Type=simple
+User=%I
+ExecStart=/usr/local/sbin/user-defaults
+
+[Install]
+WantedBy=graphical-session.target
