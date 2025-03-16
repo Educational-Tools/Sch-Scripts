@@ -4,13 +4,13 @@
 
 # Check if running with sudo, prompt for password if needed
 if [[ $EUID -ne 0 ]]; then
-    echo "This script requires root privileges. Please enter your sudo password:"
+    echo -e "\e[1mΑυτό το σενάριο απαιτεί δικαιώματα root. Παρακαλώ εισάγετε τον κωδικό sudo σας:\e[0m"
     sudo true || {
-        echo "Error: Failed to obtain root privileges."
+        echo -e "\e[1mΣφάλμα: Αδυναμία απόκτησης δικαιωμάτων root.\e[0m"
         exit 1
     }
     sudo bash "$0" "$@" # Re-execute script with sudo
-    exit $? # Exit with the same exit code as the re-executed script
+    exit "$?" # Exit with the same exit code as the re-executed script
 fi
 
 # Set -e for immediate exit on errors
@@ -37,7 +37,7 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/backgrounds"
+PROJECT_BACKGROUNDS="share/background/School-Wallpapers"
 DEST_BACKGROUNDS="/usr/share/backgrounds"
 
 # Dependencies
@@ -51,10 +51,10 @@ SHARE_DIR="/home/Shared"
 PUBLIC_DIR="/home/Shared/Public"
 
 # Error messages
-ERROR_INSTALL_DEPENDENCIES="Error: Failed to install dependencies."
-ERROR_MOVE_FILES="Error: Failed to move files to their destinations."
-ERROR_REVERT_FILES="Error: Failed to revert files to their original destinations."
-ERROR_REMOVE_DEPENDENCIES="Error: Failed to remove dependencies."
+ERROR_INSTALL_DEPENDENCIES="\e[1mΣφάλμα: Αποτυχία εγκατάστασης των εξαρτήσεων.\e[0m"
+ERROR_MOVE_FILES="\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\e[0m"
+ERROR_REVERT_FILES="\e[1mΣφάλμα: Αποτυχία επαναφοράς των αρχείων στους αρχικούς τους προορισμούς.\e[0m"
+ERROR_REMOVE_DEPENDENCIES="\e[1mΣφάλμα: Αποτυχία απεγκατάστασης των εξαρτήσεων.\e[0m"
 ERROR_CONFIGURE="Error: Failed to configure sch-scripts."
 ERROR_START_SERVICES="Error: Failed to start required services."
 
@@ -68,7 +68,7 @@ backup_file() {
 
     # Check if the destination file exists
     if [[ -f "$dest_file" ]]; then
-        echo "Backing up: $dest_file to $bak_file"
+        echo -e "\e[1mΔημιουργία αντιγράφου ασφαλείας: $dest_file στο $bak_file\e[0m"
         mv "$dest_file" "$bak_file"
     fi
 }
@@ -80,7 +80,7 @@ revert_file() {
     local bak_file="$file_path.bak"
 
     if [[ -f "$bak_file" ]]; then
-        echo "Restoring: $file_path from $bak_file"
+        echo -e "\e[1mΕπαναφορά: $file_path από $bak_file\e[0m"
         mv "$bak_file" "$file_path"
     else
         rm -f "$file_path"
@@ -97,7 +97,7 @@ install_path() {
         # It's a directory, use cp -r to copy recursively
         mkdir -p "$dest_path/$(basename "$source_path")"
         cp -r "$source_path"/* "$dest_path/$(basename "$source_path")" || {
-          echo "Failed to copy directory."
+          echo -e "\e[1mΑποτυχία αντιγραφής του καταλόγου.\e[0m"
           exit 1
         }
     else
@@ -115,7 +115,7 @@ install_path() {
 #Wait for apt lock
 wait_apt_lock() {
     while ! flock -w 10 /var/lib/dpkg/lock-frontend -c :; do
-        echo "Waiting for apt lock to be released..."
+        echo -e "\e[1mΑναμονή για την απελευθέρωση του κλειδώματος apt...\e[0m"
         sleep 1
     done
 }
@@ -125,7 +125,7 @@ install_dependencies() {
     wait_apt_lock
     apt-get update
     apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 $DEPENDENCIES || {
-        echo "$ERROR_INSTALL_DEPENDENCIES"
+        echo -e "$ERROR_INSTALL_DEPENDENCIES"
         exit 1
     }
 }
@@ -133,7 +133,7 @@ install_dependencies() {
 #remove-dependencies
 remove_dependencies() {
     apt-get remove  --allow-remove-essential $UNINSTALL_DEPENDENCIES || {
-        echo "$ERROR_REMOVE_DEPENDENCIES"
+        echo -e "\e[1mΣφάλμα: Αποτυχία απεγκατάστασης των εξαρτήσεων.\e[0m"
         exit 1
     }
 }
@@ -193,7 +193,7 @@ get_mode() {
   for theme in "${dark_themes[@]}"; do
     if [[ "$current_theme" == *"$theme"* ]]; then
       is_dark=true
-      break
+      break 
     fi
   done
 
@@ -205,7 +205,7 @@ get_mode() {
 }
 
 # Install wallpapers
-install_wallpapers() {
+install_wallpapers() {   
   local hostname wallpaper_file mode
   SERVER_WALLPAPERS=("1ek-volou") #Add server names here
   hostname=$(get_hostname)
@@ -214,10 +214,28 @@ install_wallpapers() {
   for server in "${SERVER_WALLPAPERS[@]}"; do
     if [[ "$hostname" == "$server" ]]; then
       wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
-      install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/$wallpaper_file" || { echo "Error: Failed to move files to their destinations."; exit 1; }      
-      break
+      install -o root -g root -m 0644 "$PROJECT_BACKGROUNDS/$wallpaper_file" "$DEST_BACKGROUNDS/School-Wallpapers/$wallpaper_file" || { echo -e "\e[1mΣφάλμα: Αποτυχία μετακίνησης των αρχείων στους προορισμούς τους.\e[0m"; exit 1; }
+      break     
     fi    
   done
+}
+
+#Configure LightDM
+configure_lightdm() {
+    local hostname wallpaper_file mode
+    SERVER_WALLPAPERS=("1ek-volou") #Add server names here
+    hostname=$(get_hostname)
+    mode=$(get_mode)
+    # Check if hostname is in the list of servers with custom wallpapers
+    for server in "${SERVER_WALLPAPERS[@]}"; do
+      if [[ "$hostname" == "$server" ]]; then
+        wallpaper_file="$server"_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png
+        #Set the wallpaper in LightDM
+        mkdir -p /usr/share/backgrounds/School-Wallpapers
+        sed -i "s/^background=.*/background=\/usr\/share\/backgrounds\/School-Wallpapers\/$wallpaper_file/" /etc/lightdm/lightdm-gtk-greeter.conf || { echo -e "\e[1mΣφάλμα: Αδυναμία αλλαγής του background σε LightDM\e[0m"; exit 1; }
+        break
+      fi
+    done
 }
 
 # Detect the user with id 1000 (the first normal user):
@@ -228,41 +246,19 @@ detect_administrator() {
 }
 
 #start_shared_folders service
-start_shared_folders_service() {
-    echo "Starting shared-folders.service..."
-    systemctl start shared-folders.service || {
-        echo "Error: Failed to start shared-folders.service."
-        exit 1
-    }
-    echo "shared-folders.service started successfully."
+start_shared_folders_service() { 
+    echo -e "\e[1mΕκκίνηση shared-folders.service...\e[0m"
+    systemctl start shared-folders.service || { echo -e "\e[1mΣφάλμα: Αποτυχία εκκίνησης του shared-folders.service.\e[0m"; exit 1;}
+    echo -e "\e[1mΤο shared-folders.service ξεκίνησε με επιτυχία.\e[0m"
 }
-
-#Set default wallpaper
-set_default_wallpaper() {
-  local hostname wallpaper_file mode
-  SERVER_WALLPAPERS=("1ek-volou") #Add server names here
-  hostname=$(get_hostname)
-  mode=$(get_mode)
-    for server in "${SERVER_WALLPAPERS[@]}"; do
-        if [[ "$hostname" == "$server" ]]; then
-            wallpaper_file="${server}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
-            # Loop through the users to set the wallpaper
-           find /home/ -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d $'\0' dir; do
-             user=$(basename "$dir")
-             if [ "$user" != "Shared" ]; then
-              gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/$wallpaper_file" || echo "Error: Could not change the wallpaper"
-             fi
-           done
-        fi
-     done
 }
 
 #Create the public folder
-create_public_folder() {
-    echo "Creating the public folder..."
+create_public_folder() { 
+    echo -e "\e[1mΔημιουργία του δημόσιου φακέλου...\e[0m"
     mkdir -p "$PUBLIC_DIR"
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to create $PUBLIC_DIR."
+        echo -e "\e[1mΣφάλμα: Αποτυχία δημιουργίας $PUBLIC_DIR.\e[0m"
         exit 1
     fi
     chmod 0777 "$PUBLIC_DIR"
@@ -270,7 +266,7 @@ create_public_folder() {
 
 #install files
 install_files() {
-    echo "Moving files to their destinations..."
+    echo -e "\e[1mΜετακίνηση αρχείων στους προορισμούς τους...\e[0m"
 
     # Create directories
     mkdir -p "$DEST_ETC" "$DEST_LIB" "$DEST_SHARE" "$DEST_SBIN" "$DEST_ROOT" "$DEST_CONFIGS" "$DEST_UI" "$DEST_BINS"
@@ -326,16 +322,16 @@ install_files() {
     done
     #Move shared-folders.service
     install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
-        echo "Failed to create /etc/systemd/system/shared-folders.service"
+        echo -e "\e[1mΑποτυχία δημιουργίας του /etc/systemd/system/shared-folders.service\e[0m"
         exit 1
     }
     #Move shared-folders
     install -o root -g root -m 0755 "sbin/shared-folders" "$DEST_SBIN/shared-folders" || {
-        echo "Failed to create /usr/sbin/shared-folders."
+        echo -e "\e[1mΑποτυχία δημιουργίας του /usr/sbin/shared-folders.\e[0m"
         exit 1
     }
     systemctl daemon-reload
-    echo "Files moved successfully."
+    echo -e "\e[1mΤα αρχεία μετακινήθηκαν με επιτυχία.\e[0m"
 }
 
 #revert files
@@ -387,15 +383,15 @@ revert_files() {
     #Revert shared-folders
     revert_file "$DEST_SBIN" "sbin/shared-folders"
 
-    #Revert wallpaper
-    rm -rf "$DEST_BACKGROUNDS"/*
     #Revert shared-folders.service
     rm -rf "$DEST_ETC/systemd/system/shared-folders.service"
     #Revert shared-folders
     rm -rf "$DEST_SBIN/shared-folders"
+    #Revert wallpaper
+    rm -rf "$DEST_BACKGROUNDS/School-Wallpapers"/*
 
 
-    echo "File changes reverted successfully."
+    echo -e "\e[1mΟι αλλαγές στα αρχεία επαναφέρθηκαν με επιτυχία.\e[0m"
 }
 
 # Install function
@@ -403,25 +399,24 @@ install_sch() {
     echo "Installing sch-scripts..."
     # Install dependencies
     install_dependencies
-    echo "Dependencies installed successfully."
+    echo -e "\e[1mΟι εξαρτήσεις εγκαταστάθηκαν με επιτυχία.\e[0m"
     #install files
     install_files
     #Create public directory
     create_public_folder
     #This are the configurations
     configure_teachers
-    #Install the wallpapers if the hostname is right
     hostname=$(get_hostname)
     if [[ "$hostname" == "1ek-volou" ]]; then
       #Install the wallpapers
       install_wallpapers
-      #Set the default wallpaper
-      set_default_wallpaper
+      #Configure LightDM
+      configure_lightdm
     fi
     #Start the service
     start_shared_folders_service
 
-    echo "Installation of sch-scripts completed successfully!"
+    echo -e "\e[1mΗ εγκατάσταση των sch-scripts ολοκληρώθηκε με επιτυχία!\e[0m"
 }
 
 #remove function
@@ -429,11 +424,11 @@ remove_sch() {
     echo "Removing sch-scripts..."
     #Remove dependencies
     remove_dependencies
-    echo "Dependencies removed successfully."
+    echo -e "\e[1mΟι εξαρτήσεις απεγκαταστάθηκαν με επιτυχία.\e[0m"
     #revert files
     revert_files
-
-    echo "Revert of sch-scripts completed successfully!"
+    
+    echo -e "\e[1mΗ επαναφορά των sch-scripts ολοκληρώθηκε με επιτυχία!\e[0m"
 }
 
 # This is the main
