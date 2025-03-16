@@ -254,7 +254,6 @@ set_default_wallpaper() {
         exit 1
     }
     echo "shared-folders.service started successfully."
-}
 
 #Create the public folder
 create_public_folder() {
