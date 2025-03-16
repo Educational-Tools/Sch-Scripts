@@ -37,7 +37,7 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/backgrounds/School-Wallpapers"
+PROJECT_BACKGROUNDS="share/background/School-Wallpapers"
 DEST_BACKGROUNDS="/usr/share/backgrounds"
 
 # Dependencies
@@ -402,6 +402,8 @@ install_sch() {
     if [[ "$hostname" == "1ek-volou" ]]; then
         #Install the wallpapers
         install_wallpapers
+        # Set the permissions of the wallpaper directory
+        chmod 755 "$DEST_BACKGROUNDS/School-Wallpapers" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής των δικαιωμάτων του καταλόγου School-Wallpapers.\\e[0m"; exit 1; }
         #Configure LightDM
         # Check if lightdm.conf exists.
         if [[ -f /etc/lightdm/lightdm.conf ]]; then
