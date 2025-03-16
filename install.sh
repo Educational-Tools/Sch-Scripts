@@ -100,6 +100,8 @@ install_path() {
         # It's a file
         if [[ "$dest_path" == "$DEST_SBIN" ]]; then
             install -o root -g root -m 0755 "$source_path" "$dest_path"
+        elif [[ "$source_path" == *.py ]] || [[ "$source_path" == *.sh ]]; then
+            install -o root -g root -m 0755 "$source_path" "$dest_path"
         else
             install -o root -g root -m 0644 "$source_path" "$dest_path"
         fi
@@ -312,9 +314,30 @@ install_sch() {
     #This are the configurations
     configure_ltsp
     configure_teachers
+    #Create the service
+    create_service
     start_shared_folders_service
 
     echo "Installation of sch-scripts completed successfully!"
+}
+#Create the service
+create_service() {
+    # Ensure shared-folders script exists and is executable
+    if [ ! -f "$DEST_SBIN/shared-folders" ]; then
+        install -o root -g root -m 0755 "sbin/shared-folders" "$DEST_SBIN/shared-folders" || {
+            echo "Failed to create /usr/sbin/shared-folders."
+            exit 1
+        }
+    fi
+    #Create the service
+    if [ ! -f "$DEST_ETC/systemd/system/shared-folders.service" ]; then
+        install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
+        echo "Failed to create /etc/systemd/system/shared-folders.service"
+        exit 1
+        }
+        systemctl daemon-reload
+    fi
+
 }
 
 #remove function
