@@ -37,7 +37,7 @@ PROJECT_ROOT="share/sch-scripts"
 PROJECT_CONFIGS="share/sch-scripts/configs"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
-PROJECT_BACKGROUNDS="share/backgrounds/School-Wallpapers" # Corrected line
+PROJECT_BACKGROUNDS="share/backgrounds/linuxmint" # Corrected line
 DEST_BACKGROUNDS="/usr/share/backgrounds"
 DEST_LINUXMINT_WALLPAPERS="/usr/share/backgrounds/linuxmint"
 
