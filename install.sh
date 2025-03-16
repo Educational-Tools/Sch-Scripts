@@ -375,6 +375,8 @@ revert_files() {
     rm -rf "$DEST_SBIN/shared-folders"
     #Revert wallpaper
     rm -rf "$DEST_BACKGROUNDS/School-Wallpapers"/*
+    #Remove the added file
+    rm -rf /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf
 
 
     echo -e "\\e[1mΟι αλλαγές στα αρχεία επαναφέρθηκαν με επιτυχία.\\e[0m"
@@ -394,28 +396,46 @@ install_sch() {
     configure_teachers
     hostname=$(get_hostname)
     if [[ "$hostname" == "1ek-volou" ]]; then
-      #Install the wallpapers
-      install_wallpapers
-      #Configure LightDM
-      # Check if lightdm.conf exists.
-      if [[ -f /etc/lightdm/lightdm.conf ]]; then
-          # Check if greeter-session is set.
-          if ! grep -q "^greeter-session" /etc/lightdm/lightdm.conf; then
-              # Add greeter-session=lightdm-gtk-greeter
-              echo "greeter-session=lightdm-gtk-greeter" >> /etc/lightdm/lightdm.conf
-          else
-              # Check if greeter-session is different than lightdm-gtk-greeter
-              if ! grep -q "^greeter-session=lightdm-gtk-greeter" /etc/lightdm/lightdm.conf; then
-                  sed -i "s/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/" /etc/lightdm/lightdm.conf
-              fi
-          fi
-      fi
-      # Set the wallpaper using dconf.
-      mode=$(get_mode)
-      wallpaper_file="/usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
-      dconf write /com/canonical/unity-greeter/background "'$wallpaper_file'" || { echo -e "\\e[1mΣφάλμα: Αδυναμία αλλαγής του φόντου σε LightDM\\e[0m"; exit 1; }
-      # Restart LightDM to ensure the configuration is reloaded.
-      systemctl restart lightdm || { echo -e "\\e[1mΣφάλμα: Αποτυχία επανεκκίνησης του LightDM.\\e[0m"; exit 1; }
+        #Install the wallpapers
+        install_wallpapers
+        #Configure LightDM
+        # Check if lightdm.conf exists.
+        if [[ -f /etc/lightdm/lightdm.conf ]]; then
+            # Check if greeter-session is set.
+            if ! grep -q "^greeter-session" /etc/lightdm/lightdm.conf; then
+                # Add greeter-session=lightdm-gtk-greeter
+                echo "greeter-session=lightdm-gtk-greeter" >> /etc/lightdm/lightdm.conf
+            else
+                # Check if greeter-session is different than lightdm-gtk-greeter
+                if ! grep -q "^greeter-session=lightdm-gtk-greeter" /etc/lightdm/lightdm.conf; then
+                    sed -i "s/^greeter-session=.*/greeter-session=lightdm-gtk-greeter/" /etc/lightdm/lightdm.conf
+                fi
+            fi
+        fi
+        # Set the wallpaper using dconf.
+        mode=$(get_mode)
+        wallpaper_file="/usr/share/backgrounds/School-Wallpapers/${hostname}_$(echo "$mode" | tr '[:upper:]' '[:lower:]').png"
+
+        # Check if the wallpaper file exists
+        if [[ -f "$wallpaper_file" ]]; then
+            #Check if the config folder exist
+            if [ ! -d /etc/lightdm/lightdm-gtk-greeter.conf.d ]; then
+                mkdir -p /etc/lightdm/lightdm-gtk-greeter.conf.d
+            fi
+            #Check if the file exist
+            if [[ -f /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf ]]; then
+                # Comment out the existing background line
+                sed -i "s/^\(background=\).*/#\1/" /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
+                # Append the new background line
+                echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/99_linuxmint.conf
+            else
+                # Append the background line to the new file
+                echo "background=$wallpaper_file" >> /etc/lightdm/lightdm-gtk-greeter.conf.d/99-sch-scripts.conf
+            fi
+
+        fi
+        # Restart LightDM to ensure the configuration is reloaded.
+        systemctl restart lightdm || { echo -e "\\e[1mΣφάλμα: Αποτυχία επανεκκίνησης του LightDM.\\e[0m"; exit 1; }
     fi
     #Start the service
     start_shared_folders_service
