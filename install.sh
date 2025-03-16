@@ -189,7 +189,6 @@ start_shared_folders_service() {
         exit 1
     }
     echo "shared-folders.service started successfully."
-    systemctl status shared-folders.service
 }
 
 #Create the public folder
@@ -317,7 +316,7 @@ revert_files() {
     done
     #Revert shared-folders.service
     rm -rf "$PUBLIC_DIR"
-    
+
     revert_file "$DEST_ETC/systemd/system" "etc/systemd/system/shared-folders.service"
     #Revert shared-folders
     revert_file "$DEST_SBIN" "sbin/shared-folders"
@@ -357,12 +356,12 @@ remove_sch() {
 
 # This is the main
 main() {
-    
+
     if [[ "$1" == "-u" ]]; then
         REVERT=true
     fi
     echo "Value of REVERT inside main: $REVERT"
-    
+
     if [[ $REVERT == false ]]; then
         install_sch "$@"
     else
