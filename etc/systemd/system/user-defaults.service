@@ -7,7 +7,7 @@ PartOf=graphical-session.target
 Type=forking
 User=root
 
-ExecStart=/usr/local/sbin/user-defaults
+ExecStart=/usr/sbin/user-defaults
 
 [Install]
 WantedBy=graphical-session.target

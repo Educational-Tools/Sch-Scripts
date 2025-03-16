@@ -1,42 +1,19 @@
 #!/bin/bash
 
-# Script to manage user defaults based on school and preferences
-#set -x
+# set -x
 # Constants and variables
-CONFIG_DIR="/usr/share/sch-scripts/configs"
-WALLPAPER_DIR="/usr/share/backgrounds/sch-walls"
-PYTHON_SCRIPT="/usr/share/sch-scripts/user_defaults.py" #Full path for the python file
-
-# School list (extend as needed)
-SCHOOLS=("1ek-volou")
-
-# Determine the school name (for now, just the first one in the array)
-SCHOOL=${SCHOOLS[0]}
-
-
-# Get username of newly created user
-USER="$USER"
-
-# Check if username is provided
+CONFIG_DIR="/usr/share/sch-scripts/configs" 
+PYTHON_SCRIPT="/usr/share/sch-scripts/user_defaults.py"
+if [[ -z "$USER" ]]; then
+  USER=$(whoami)
+  echo "Warning: \$USER variable not set, using current user: $USER" >&2
+fi
 if [ -z "$USER" ]; then
-  echo "Error: Username not provided." >&2
+  echo "Error: No username provided or found." >&2
   exit 1
 fi
-# Set default light/dark mode (can be extended later)
-MODE="$MODE"
-
-# Prepare wallpaper paths
-LIGHT_WALLPAPER="$WALLPAPER_DIR/${SCHOOL}_light.png"
-DARK_WALLPAPER="$WALLPAPER_DIR/${SCHOOL}_dark.png"
-# Check if the python script exist
 if [ ! -f "$PYTHON_SCRIPT" ]; then
-    echo "Error: Python script not found at $PYTHON_SCRIPT." >&2
-    exit 1
+  echo "Error: Python script not found at $PYTHON_SCRIPT." >&2
+  exit 1
 fi
-# Check if wallpaper exist
-if ! [[ -f "$LIGHT_WALLPAPER" || -f "$DARK_WALLPAPER" ]]; then
-    echo "Error: No wallpapers found for $SCHOOL at $WALLPAPER_DIR." >&2
-    exit 1
-fi
- # Execute python script with full path
-python3 "$PYTHON_SCRIPT" "$USER" "$CONFIG_DIR" "$LIGHT_WALLPAPER" "$DARK_WALLPAPER" "$MODE"
+python3 "$PYTHON_SCRIPT" "$USER" "$CONFIG_DIR"
