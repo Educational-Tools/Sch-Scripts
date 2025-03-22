@@ -30,10 +30,10 @@ PROJECT_SBIN="sbin"
 PROJECT_ROOT="share/sch-scripts"
 
 #Specific Project Directories
-DEST_CONFIGS="/usr/share/sch-scripts/configs"
+DEST_CONFIGS="/usr/share/sch-scripts/config"
 DEST_UI="/usr/share/sch-scripts/ui"
 DEST_BINS="/usr/share/sch-scripts/scripts"
-PROJECT_CONFIGS="share/sch-scripts/configs"
+PROJECT_CONFIGS="share/sch-scripts/config"
 PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
 
@@ -197,7 +197,7 @@ install_files() {
         install_path "$file" "$DEST_SHARE" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
     done
     for file in "$PROJECT_ROOT"/*; do
-        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then 
+        if [[ ! "$file" == "$PROJECT_ROOT/config" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then 
            install_path "$file" "$DEST_ROOT" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
         fi
     done
@@ -241,7 +241,7 @@ revert_files() {
          fi
     done
     for file in "$PROJECT_ROOT"/*; do
-        if [[ ! "$file" == "$PROJECT_ROOT/configs" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then 
+        if [[ ! "$file" == "$PROJECT_ROOT/config" ]] && [[ ! "$file" == "$PROJECT_ROOT/ui" ]] && [[ ! "$file" == "$PROJECT_ROOT/scripts" ]]; then 
             revert_file "$DEST_ROOT" "$file"
         fi
     done
