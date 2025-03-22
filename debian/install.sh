@@ -20,6 +20,17 @@ PROJECT_SHARE="share"
 PROJECT_SBIN="sbin" 
 PROJECT_ROOT="share/sch-scripts"
 
+# Check for --install flag
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install)
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
 #Specific Project Directories
 DEST_CONFIGS="/usr/share/sch-scripts/config"
 DEST_UI="/usr/share/sch-scripts/ui"
@@ -315,4 +326,3 @@ fi
 
 main "$@"
 
-exit 0
