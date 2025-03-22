@@ -213,6 +213,9 @@ install_files() {
     for file in "$PROJECT_BINS"/*; do
         install_path "$file" "$DEST_BINS" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
     done
+    for file in "$PROJECT_BINS"/*; do
+        chmod +x "$DEST_BINS/$file"
+    done
     install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
         echo -e "\033[1mΑποτυχία δημιουργίας /etc/systemd/system/shared-folders.service\033[1m"
         exit 1
