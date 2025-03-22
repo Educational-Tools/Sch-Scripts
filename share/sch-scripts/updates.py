@@ -35,7 +35,7 @@ class UpdatesDialog(object):
         """Execute updates if the window wasn't cancelled."""
         if self.cancelled:
             return
-        cmd = ['run-in-terminal', './updates.sh']
+        cmd = ['run-in-terminal', './scripts/updates.sh']
         if not self.builder.get_object('chb_update').get_active():
             cmd += ['-u0']
         if not self.builder.get_object('chb_clean').get_active():
