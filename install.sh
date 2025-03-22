@@ -38,7 +38,7 @@ PROJECT_UI="share/sch-scripts/ui"
 PROJECT_BINS="share/sch-scripts/scripts"
 
 # Dependencies.
-DEPENDENCIES="python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
+DEPENDENCIES="ltsp python3 python3-gi python3-pip epoptes openssh-server iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool net-tools p7zip-rar squashfs-tools symlinks"
 
 # Uninstall Dependencies.
 UNINSTALL_DEPENDENCIES="epoptes openssh-server net-tools symlinks ltsp"
