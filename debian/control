@@ -34,7 +34,8 @@ Recommends: adobe-flashplugin,
  openssh-server,
  p7zip-rar,
  squashfs-tools,
- synaptic
+ synaptic,
+ tftp
 Description: Διαχείριση ΣΕΠΕΗΥ
  Παρέχει ένα σύνολο εξαρτήσεων για την αυτοματοποίηση της εγκατάστασης
  σχολικών εργαστηρίων, και ένα γραφικό περιβάλλον που υποστηρίζει διαχείριση
