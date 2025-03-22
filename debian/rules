@@ -4,6 +4,8 @@
 	dh $@
 
 override_dh_install:
+	cp install.sh debian/install.sh
+	chmod +x debian/install.sh
 	dh_install
 	chmod +x debian/sch-scripts.postinst
 	chmod +x share/sch-scripts/*
