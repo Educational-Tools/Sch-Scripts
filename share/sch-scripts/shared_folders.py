@@ -1,75 +1,296 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 # This file is part of sch-scripts, https://sch-scripts.gitlab.io
-# Copyright 2012-2022 the sch-scripts team, see AUTHORS
+# Copyright 2009-2022 the sch-scripts team, see AUTHORS
 # SPDX-License-Identifier: GPL-3.0-or-later
+"""
+Shared folders.
+"""
+import hashlib
+import os
+import shlex
+import stat
+import sys
+import subprocess
+import libuser
 
-import os, sys, grp, pwd, subprocess, shlex
+# TODO: after the workshop, let's move the shared_folders ui into its own
+# dialog, and only disable editing groups that have shares in group_form.py
+# Unrelated, we might also want a "restrict_dirs" function that
+# chrgrp's the user dirs to "teachers".
 
-class System:
-    """Encapsulate OS related functionality."""
-    def __init__(self):
-        self.groups = {g.gr_name: g for g in grp.getgrall()}
-        self.users = {u.pw_name: u for u in pwd.getpwall()}
-        self.system_groups = {"root", "daemon", "bin", "sys", "sync", "games", "man", "lp", "mail", "news", "uucp", "proxy", "www-data", "backup", "list", "irc", "gnats", "nobody", "systemd-timesync", "systemd-network", "systemd-resolve", "messagebus", "syslog", "_apt", "tss", "uuidd", "tcpdump", "avahi-autoipd", "usbmux", "rtkit", "dnsmasq", "speech-dispatcher", "colord", "hplip", "saned", "pulse", "avahi", "geoclue", "systemd-coredump"}
-
-class SharedFolders:
-    def __init__(self, system=None, config=None):
+class SharedFolders():
+    def __init__(self, system=None):
+        """Initialization."""
         if system is None:
-            system = System()
-        self.system = system
-        self.config = {}
+            self.system=libuser.System()
+        else:
+            self.system=system
         self.load_config()
+
+    def add(self, groups):
+        """Add the specified groups to share_groups, and mount them."""
+        groups=self.valid(groups)
+        self.system.share_groups=list(set(self.system.share_groups + groups))
+        self.mount(groups)
+        self.save_config()
+
+    def ensure_dir(self, dir, mode=0o755, uid=-1, gid=-1):
+        """Ensures that dir exists with the specified mode, uid and gid."""
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+        s=os.stat(dir)
+        m=stat.S_IMODE(s.st_mode)
+        if m != mode:
+            os.chmod(dir, mode)
+        if (uid != -1 and uid != s.st_uid) or (gid != -1 and gid != s.st_gid):
+            os.chown(dir, uid, gid)
+
+    def list_mounted(self, groups=None):
+        """Return which of the specified groups are mounted."""
+        groups=self.valid(groups)
+        mounted=[]
+        for mount in self.parse_mounts():
+            if mount['group'] in groups:
+                mounted.append(mount['group'])
+        return mounted
+
+    def list_shared(self, groups=None):
+        """Return which of the specified groups are shared."""
+        groups=self.valid(groups)
+        return self.valid(list(set(self.system.share_groups) & set(groups)))
+
     def load_config(self):
         """Read the shell configuration files."""
-        self.config = {
-            "DISABLE_SHARED_FOLDERS": "false",
-            "DISABLE_NFS_EXPORTS": "false",
-            "RESTRICT_DIRS": "false",
-            "TEACHERS": "teachers",
-            "SHARE_DIR": "/home/Shared",
-            "SHARE_GROUPS": "teachers",
-            "PUBLIC_DIR": "/home/Shared/Public"
-        }
-        try:
-            with open("/etc/default/shared-folders") as f:
-                contents = shlex.split(f.read(), True)
-                self.config.update(dict(v.split("=") for v in contents))
-        except FileNotFoundError:
-            pass
-
-    def ensure_dir(self, dir, mode, uid, gid):
-        """Ensure a directory is present, with the right perms/ownership."""
-        if not os.path.exists(dir):
-            os.makedirs(dir, mode, exist_ok=True)
-        os.chmod(dir, mode)
-        os.chown(dir, uid, gid)
+        # Start with default values for self.config, and then update them.
+        self.config={
+            "DISABLE_SHARED_FOLDERS":"false",
+            "DISABLE_NFS_EXPORTS":"false",
+            "RESTRICT_DIRS":"true",
+            "TEACHERS":"teachers",
+            "SHARE_DIR":"/home/Shared",
+            "SHARE_GROUPS":"teachers",
+            "ADM_UID":"1000",
+            "ADM_GID":"1000"}
+        contents=shlex.split(open("/etc/default/shared-folders").read(), True)
+        self.config.update(dict(v.split("=") for v in contents))
+        self.config["SHARE_DIR/"]=os.path.join(self.config["SHARE_DIR"], "")
+        self.config["SHARE_CONF"]=self.config["SHARE_DIR/"] + ".shared-folders"
+        if os.path.isfile(self.config['SHARE_CONF']):
+            contents=shlex.split(open(self.config['SHARE_CONF']).read(), True)
+            self.config.update(dict(v.split("=") for v in contents))
+        self.system.teachers=self.config["TEACHERS"]
+        self.system.share_groups=self.config["SHARE_GROUPS"].split(" ")
 
     def mount(self, groups=None):
-        """Create the folders for the specified groups."""
-        
-        # Ensure main shared directory exists
-        self.ensure_dir(self.config["SHARE_DIR"], 0o755, 0, 0)
-        
-        # Create public folder
-        self.ensure_dir(self.config["PUBLIC_DIR"], 0o777, 0, 0)
-
-        #Create the folders for the groups
-        groups=self.config["SHARE_GROUPS"].split()
-        for group in groups:
-            if group in self.system.system_groups:
+        """Mount or remount the folders for the specified groups."""
+        groups=self.valid(groups)
+        # Remove from groups the ones that don't need to be (re)mounted.
+        # Unmount the ones that need remounting, without removing them.
+        for mount in self.parse_mounts():
+            group=mount["group"]
+            if group not in groups:
                 continue
-            group_dir=self.config["SHARE_DIR"] + "/" + group
-            group_gid = self.system.groups[group].gr_gid if group in self.system.groups else None
-            if group_gid:
-                self.ensure_dir(group_dir, 0o770, 0, group_gid)
+            if self.system.groups[group].gid == mount["gid"]:
+                groups.remove(group)
+            else:
+                self.unmount(group)
+        # Then mount what's left.
+        # This might actually be the first time to mount anything,
+        # so ensure that all the dirs/symlinks are there.
+        adm_uid=int(self.config["ADM_UID"])
+        self.ensure_dir(self.config["SHARE_DIR"], 0o711,
+            adm_uid, int(self.config["ADM_GID"]))
+        self.ensure_dir(self.config["SHARE_DIR/"] + ".symlinks", 0o731,
+            adm_uid, self.system.groups[self.config["TEACHERS"]].gid)
+        for group in groups:
+            dir=self.config["SHARE_DIR/"] + group
+            group_gid=self.system.groups[group].gid
+            self.ensure_dir(dir, 0o770, adm_uid, group_gid)
+            subprocess.call(["bindfs",
+                "-u", str(adm_uid),
+                "--create-for-user=%s" % adm_uid,
+                "-g", str(group_gid),
+                "--create-for-group=%s" % group_gid,
+                "-p", "770,af-x", "--chown-deny", "--chgrp-deny",
+                "--chmod-deny", dir, dir])
+        self.nfs_exports()
 
-            
+    def nfs_exports(self):
+        """Generate /etc/exports.d/shared-folders.exports for NFS.
+           Called by mount() and remove();
+           not by add() as NFS might not be installed yet."""
+        if self.config["DISABLE_NFS_EXPORTS"] != "false":
+            return
+        if not os.path.isfile("/usr/sbin/exportfs"):
+            return
+        dpath="/etc/exports.d"
+        fpath="%s/shared-folders.exports" % dpath
+        if os.path.isfile(fpath):
+            with open(fpath) as f:
+                oldc=f.read()
+        else:
+            oldc=""
+        newlines=[
+            "# Configure NFS exports for shared-folders",
+            "# A different fsid per folder is needed for crossmnt to work",
+            "# Documentation=man:shared-folders(8)",
+            ""]
+        for group in self.system.share_groups:
+            newlines.append(
+                "%s\t*(fsid=%s,rw,async,no_subtree_check,no_root_squash,insecure)" %
+                    (self.config["SHARE_DIR/"] + group,
+                    hashlib.md5((self.config["SHARE_DIR/"] + group).encode("utf-8")).hexdigest()))
+        if (len(newlines) > 4):
+            newlines.append("")
+        newc="\n".join(newlines)
+        if oldc != newc:
+            self.ensure_dir(dpath)
+            with open(fpath, "w") as f:
+                f.write(newc)
+            print("Updated %s, running `exportsfs -ra`" % fpath)
+            subprocess.call(["exportfs", "-ra"])
 
-    
+    def rename(self, src, dst):
+        """Rename folder src to group dst.
+           Call groupmod to rename the group before calling this function."""
+        if dst not in self.system.groups:
+            sys.stderr.write("%s is not a valid group.\n" % dst)
+            return
+        mounted=self.unmount(src)
+        # TODO: check if dst exists etc
+        os.rename(src, dst)
+        self.system.share_groups=list(
+            (set(self.system.share_groups) - set([src])) | set([dst]))
+        if mounted is not None:
+            self.mount(dst)
+        self.save_config()
 
-if __name__ == "__main__":
-    sf = SharedFolders()
-    groups = None
-    if sf.config["DISABLE_SHARED_FOLDERS"] != "true":
+    def parse_mounts(self):
+        """Return a list of all bindfs mounts unset /home/Shared."""
+        mounts=[]
+        for line in open("/proc/mounts").readlines():
+            items=line.split()
+            # In 12.04: bindfs /home/Shared/a1 fuse.bindfs rw,... 0 0
+            # In 18.04: /home/Shared/users /home/Shared/a1 fuse rw,... 0 0
+            if not items[1].startswith(self.config["SHARE_DIR/"]) or \
+              items[2] not in ["fuse", "fuse.bindfs"]:
+                continue
+            mount={}
+            mount['point']=items[1]
+            mount['group']=mount['point'].partition(
+                self.config["SHARE_DIR/"])[2]
+            if mount['group'] not in self.system.share_groups:
+                continue
+            stat=os.stat(mount['point'])
+            mount['uid']=stat.st_uid
+            mount['gid']=stat.st_gid
+            mounts.append(mount)
+        return mounts
+
+    def remove(self, groups=None):
+        """Un-share specified folders and remove them from share_groups."""
+        if groups is None or groups == []:
+            groups=self.system.share_groups
+        self.unmount(groups)
+        self.system.share_groups=list(
+            set(self.system.share_groups) - set(groups))
+        self.save_config()
+        self.nfs_exports()
+
+    def save_config(self):
+        """Save share_groups to /home/Shared/.shared-folders."""
+        f=open(self.config["SHARE_CONF"], "w")
+        f.write("""# List of groups for which shared folders will be created.
+SHARE_GROUPS="%s"
+""" % ' '.join(self.list_shared()))
+        f.close()
+
+    def unmount(self, groups=None):
+        """Return the folders that were actually unmounted."""
+        if groups is None or groups == []:
+            groups=self.system.share_groups
+        ret=[]
+        for mount in self.parse_mounts():
+            group=mount["group"]
+            if group not in groups:
+                continue
+            ret.append(group)
+            point=mount["point"]
+            if subprocess.call(["umount", point]) == 0:
+                continue
+            sys.stderr.write("Cannot unmount %s, forcing unmount..." % point)
+            subprocess.call(["umount", "-l", point])
+        return ret
+
+    def valid(self, groups=None):
+        """Return which of the specified groups are defined in /etc/group."""
+        if groups is None or groups == []:
+            groups=self.system.share_groups
+        return sorted(list(set(self.system.groups) & set(groups)))
+
+def usage():
+    return """Χρήση: shared-folders [ΕΝΤΟΛΕΣ]
+
+Διαχειρίζεται κοινόχρηστους φακέλους για συγκεκριμένες ομάδες χρηστών,
+με τη βοήθεια του bindfs.
+
+Εντολές:
+    add <ομάδες>
+        Δημιουργεί φακέλους για τις καθορισμένες ομάδες, εάν δεν υπάρχουν
+        ήδη, και τους προσαρτεί με χρήση του bindfs.
+    list-mounted <ομάδες>
+        Εμφανίζει ποιες από τις καθορισμένες ομάδες έχουν προσαρτημένους
+        φακέλους.
+    list-shared <ομάδες>
+        Εμφανίζει ποιες από τις καθορισμένες ομάδες έχουν ενεργοποιημένους
+        τους κοινόχρηστους φακέλους.
+    mount <ομάδες>
+        Επαναπροσαρτεί τους κοινόχρηστους φακέλους για όσες από τις
+        καθορισμένες ομάδες έχει αλλάξει το όνομα ή το GID, και για όσες
+        δεν ήταν προσαρτημένοι οι φάκελοί τους.
+    rename <παλιά ομάδα> <νέα ομάδα>
+        Αλλάζει το όνομα ενός φακέλου από την παλιά του ομάδα στη νέα,
+        η οποία πρέπει είναι υπαρκτή. Εάν ο φάκελος ήταν προσαρτημένος,
+        αποπροσαρτείται, μετονομάζεται και προσαρτείται πάλι.
+    remove <ομάδες>
+        Αποπροσαρτεί και αφαιρεί τη δυνατότητα κοινόχρηστων φακέλων από
+        τις καθορισμένες ομάδες. Οι φάκελοι δεν διαγράφονται από το
+        σύστημα αρχείων.
+    unmount <ομάδες>
+        Αποπροσαρτεί τους κοινόχρηστους φακέλους των καθορισμένων ομάδων.
+
+Σε όλες τις παραπάνω περιπτώσεις εκτός από την add και τη rename, εάν δεν
+καθοριστούν οι <ομάδες>, χρησιμοποιούνται όλες οι κοινόχρηστες ομάδες.
+"""
+
+if __name__ == '__main__':
+    if (len(sys.argv) <= 1) or (len(sys.argv) == 2
+      and (sys.argv[1] == '-h' or sys.argv[1] == '--help')):
+        print(usage())
+        sys.exit(0)
+    sf=SharedFolders()
+    cmd=sys.argv[1]
+    groups=sys.argv[2:]
+    if cmd == "add":
+        if len(sys.argv) < 3:
+            sys.stderr.write(usage() + "\n")
+            sys.exit(1)
+        sf.add(groups)
+    elif cmd == "list-mounted":
+        print(' '.join(sf.list_mounted(groups)))
+    elif cmd == "list-shared":
+        print(' '.join(sf.list_shared(groups)))
+    elif cmd == "mount":
         sf.mount(groups)
+    elif cmd == "rename":
+        if len(sys.argv) != 4:
+            sys.stderr.write(usage() + "\n")
+            sys.exit(1)
+        sf.rename(groups[0], groups[1])
+    elif cmd == "remove":
+        sf.remove(groups)
+    elif cmd == "unmount":
+        sf.unmount(groups)
+    else:
+        sys.stderr.write(usage() + "\n")
+        sys.exit(1)

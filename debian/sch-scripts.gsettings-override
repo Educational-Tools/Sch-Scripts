@@ -1,0 +1,28 @@
+# For Ubuntu MATE >= 22.04
+[org.ayatana.indicator.session]
+user-show-menu = false
+
+# For Ubuntu MATE <= 20.04
+[org.gnome.desktop.lockdown]
+disable-user-switching = true
+
+[org.mate.panel]
+default-layout = 'ubuntu-mate'
+
+[org.mate.peripherals-keyboard-xkb.general]
+group-per-window = false
+
+[org.mate.pluma]
+auto-detected-encodings = ['UTF-8','CURRENT','WINDOWS-1253','ISO-8859-15','UTF-16']
+auto-indent = true
+bracket-matching = true
+color-scheme = 'oblivion'
+insert-spaces = true
+shown-in-menu-encodings = ['WINDOWS-1253','ISO-8859-15']
+
+[org.mate.screensaver]
+lock-enabled = false
+mode = 'blank-only'
+
+[org.mate.terminal.profile]
+allow-bold=true

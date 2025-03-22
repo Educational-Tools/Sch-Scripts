@@ -13,6 +13,7 @@ class UpdatesDialog(object):
     def __init__(self, standalone=False):
         self.builder = Gtk.Builder()
         self.builder.add_from_file('ui/updates.ui')
+        self.standalone = standalone
         self.cancelled = False
         self.wnd_updates = self.builder.get_object('wnd_updates')
         self.builder.connect_signals(self)
@@ -34,7 +35,7 @@ class UpdatesDialog(object):
         """Execute updates if the window wasn't cancelled."""
         if self.cancelled:
             return
-        cmd = ['run-in-terminal', './scripts/updates.sh']
+        cmd = ['run-in-terminal', './updates.sh']
         if not self.builder.get_object('chb_update').get_active():
             cmd += ['-u0']
         if not self.builder.get_object('chb_clean').get_active():
@@ -48,7 +49,7 @@ class UpdatesDialog(object):
         if self.standalone:
             os.execv('./run-in-terminal', cmd)
         else:
-            os.spawnvp(os.P_NOWAIT, './scripts/run-in-terminal', cmd)
+            os.spawnvp(os.P_NOWAIT, './run-in-terminal', cmd)
 
     def quit(self, cancelled):
         """Close the main window."""

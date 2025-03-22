@@ -5,7 +5,7 @@
 
 # Perform selected update actions
 
-. /usr/share/sch-scripts/common.sh
+. /usr/share/sch-scripts/scripts/common.sh
 
 # Show usage; receive an optional fd parameter, 1 for stdout or 2 for stderr
 usage() {

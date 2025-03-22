@@ -9,30 +9,16 @@
 # was last ran before the following _VERSION. MANUALLY UPDATE THIS:
 _PROMPT_AFTER="19.0"
 
-. /usr/share/sch-scripts/common.sh
-
-install_dependencies() {
-    # Wait for apt lock to be released
-    while ! flock -w 10 /var/lib/dpkg/lock-frontend -c :; do
-        echo "Waiting for apt lock to be released..."
-        sleep 1
-    done
-    apt-get update
-    apt-get install -y bindfs iputils-arping libgtk-3-0 librsvg2-common policykit-1 util-linux dnsmasq ethtool ltsp net-tools nfs-kernel-server p7zip-rar squashfs-tools || {
-        echo "Error: Failed to install soft dependencies."
-        exit 1
-    }
-}
+. /usr/share/sch-scripts/scripts/common.sh
 
 main() {
+    chmod +x /usr/share/sch-scripts/*
     cmdline "$@"
     # configure_various goes first as it backgrounds a DNS task
-    install_dependencies
     configure_various
     configure_ltsp
     configure_symlinks
     configure_teachers
-    start_shared_folders_service
 }
 
 cmdline() {
@@ -59,7 +45,7 @@ cmdline() {
     fi
     mkdir -p "${conf%/*}"
     printf \
-        "# This file is regenerated when /usr/share/sch-scripts/initial-setup.sh runs.
+        "# This file is regenerated when /usr/share/sch-scripts/scripts/initial-setup.sh runs.
 
 # Remember the last version ran, to answer the --check parameter:
 LAST_VERSION=%s\n" "$_VERSION" >"$conf"
@@ -69,7 +55,7 @@ configure_ltsp() {
     command -v ltsp >/dev/null || return 0
     mkdir -p /etc/ltsp
     if [ ! -f /etc/ltsp/ltsp.conf ]; then
-        install -m 0660 -g sudo /usr/share/sch-scripts/ltsp.conf /etc/ltsp/ltsp.conf
+        install -m 0660 -g sudo /usr/share/sch-scripts/conf/ltsp.conf /etc/ltsp/ltsp.conf
     fi
     rm -f /etc/dnsmasq.d/ltsp-server-dnsmasq.conf
     test -f /etc/dnsmasq.d/ltsp-dnsmasq.conf || ltsp dnsmasq
@@ -84,29 +70,101 @@ configure_teachers() {
     test -n "$TEACHERS" || return 0
     # If the group doesn't exist, create it and add the administrator
     if ! getent group "$TEACHERS" >/dev/null; then
+        # 685 = bash -c 'echo $((512 + 16#$(printf teachers | md5sum | cut -c1-2)))'
         addgroup --system --gid 685 "$TEACHERS"
         detect_administrator
-    fi
-    # TODO: implement what we discussed: https://gitlab.com/sch-scripts/sch-scripts/-/issues/12
-    # If the group exists, ensure the administrator is there
-    if getent group "$TEACHERS" >/dev/null; then
-        # Create a default "teachers" home:
-        teacher_home="/home/$TEACHERS"
-        mkdir -p "$teacher_home"
-        detect_administrator
-        if ! groups "$administrator" | grep -wq "$TEACHERS"; then
-            # administrator was not in group, put it there now
-            adduser "$administrator" "$TEACHERS"
+        test -n "$_ADMINISTRATOR" || return 0
+        before=$(groups "$_ADMINISTRATOR")
+        usermod -a -G "$TEACHERS,epoptes" "$_ADMINISTRATOR"
+        after=$(groups "$_ADMINISTRATOR")
+        if [ "$before" != "$after" ]; then
+            bold "Χρειάζεται αποσύνδεση και επανασύνδεση για να ενεργοποιηθούν οι αλλαγές στις ομάδες"
         fi
+    fi
+    # For shared folders to work, chmod 755 all teacher homes
+    old_ifs="${IFS-not set}"
+    IFS=","
+    set -- $(getent group "$TEACHERS" | awk -F: '{ print $4 }')
+    test "$old_ifs" = "not set" && unset IFS || IFS="$old_ifs"
+    for teacher; do
+        teacher_home=$(getent passwd "$teacher" | awk -F: '{ print $6 }')
+        chmod 755 "$teacher_home"
+    done
+}
+
+# Create symlinks together and sorted for easier overview for postrm
+configure_symlinks() {
+    # Immediately show security updates, don't install them in the background
+    symlink /usr/share/sch-scripts/conf/apt.conf \
+        /etc/apt/apt.conf.d/60sch-scripts
+    # Allow flash by default in chromium-browser for educational applications
+    symlink /usr/share/sch-scripts/conf/chromium-browser.json \
+        /etc/chromium-browser/policies/managed/sch-scripts.json
+    # Always display grub menu and used last saved entry
+    symlink /usr/share/sch-scripts/conf/grub.cfg \
+        /etc/default/grub.d/sch-scripts.cfg
+    # Specify DNS servers that work inside or outside GSN
+    symlink /usr/share/sch-scripts/conf/dnsmasq.conf \
+        /etc/dnsmasq.d/sch-scripts.conf
+    # Allow manual login (LP: #1804375)
+    symlink /usr/share/sch-scripts/conf/lightdm.conf \
+        /etc/lightdm/lightdm.conf.d/sch-scripts.conf || true
+    # Disable internal PDF viewer, enable flash on file:// URLs
+    symlink /usr/share/sch-scripts/conf/firefox.js \
+        /usr/lib/firefox/defaults/pref/sch-scripts.js
+    # Make gdebi-gtk work when run from a browser (LP #1854588)
+    symlink /usr/share/sch-scripts/conf/gdebi-gtk /usr/local/bin/gdebi-gtk
+    # Prevent marco from using XPresent on nouveau (marco #548)
+    symlink /usr/share/sch-scripts/conf/marco /usr/local/bin/marco
+    # Start tuxpaint fullscreen
+    symlink /usr/share/sch-scripts/conf/tuxpaint /usr/local/bin/tuxpaint
+    # Start tuxtype with the correct theme for the current locale
+    symlink /usr/share/sch-scripts/conf/tuxtype /usr/local/bin/tuxtype
+    # Work around unzip not using the correct charset (LP: #580961)
+    symlink /usr/share/sch-scripts/conf/unzip /usr/local/bin/unzip
+    # If mate is installed, use its mimeapps for root
+    if [ ! -f /usr/local/share/applications/mimeapps.list ] &&
+        [ -f /usr/share/mate/applications/defaults.list ]; then
+        mkdir -p /usr/local/share/applications
+        symlink /usr/share/mate/applications/defaults.list \
+            /usr/local/share/applications/mimeapps.list
     fi
 }
 
-start_shared_folders_service() {
-    echo "Starting shared-folders.service..."
-    systemctl start shared-folders.service || {
-        echo "Error: Failed to start shared-folders.service."
-        exit 1
-    }
-    echo "shared-folders.service started successfully."
-    systemctl status shared-folders.service
+configure_various() {
+    # Ensure that "server" is resolvable by DNS.
+    if ! getent hosts server >/dev/null; then
+        search_and_replace "^127.0.0.1[[:space:]]*localhost$" "& server" \
+            /etc/hosts || true
+    fi & # Background it in case the DNS resolve takes a long time.
+
+    # Allow more simultaneous SSH connections from the local network.
+    # TODO: use /etc/ssh/sshd_config.d instead
+    search_and_replace "^#MaxStartups 10:30:100$" "MaxStartups 20:30:100" \
+        /etc/ssh/sshd_config
+
+    # Allow keyboard layout switching with Alt+Shift (LP: #1892014)
+    if grep '^XKBOPTIONS="grp_led:scroll"$' /etc/default/keyboard; then
+        search_and_replace '^XKBOPTIONS="grp_led:scroll"$' \
+            'XKBOPTIONS="grp:alt_shift_toggle,grp_led:scroll"' \
+            /etc/default/keyboard 0
+        test -n "$DISPLAY" &&
+            setxkbmap -layout us,gr -option '' \
+                -option grp:alt_shift_toggle,grp_led:scroll
+    fi
+
+    # Enable printer sharing, only if the user hasn't modified cups settings.
+    # `cupsctl _share_printers=1` strips comments, but that's what the
+    # system-config-printer does as well, and it takes care of restarting cups.
+    if cmp --quiet /usr/share/cups/cupsd.conf.default /etc/cups/cupsd.conf; then
+        cupsctl _share_printers=1
+    fi
+
+    # Set x-terminal-emulator, https://bugs.debian.org/931045
+    if [ -x /usr/bin/mate-terminal.wrapper ] &&
+        [ "$(readlink -f /etc/alternatives/x-terminal-emulator)" != /usr/bin/mate-terminal.wrapper ]; then
+        update-alternatives --set x-terminal-emulator /usr/bin/mate-terminal.wrapper
+    fi
 }
+
+main "$@"

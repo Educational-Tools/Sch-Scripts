@@ -100,7 +100,7 @@ class Gui:
         # TODO: Maybe throw an error message if not os.path.isfile(filename)
 
     def run_term(self, cmd):
-        subprocess.Popen(('./scripts/run-in-terminal ' + cmd).split())
+        subprocess.Popen(('./run-in-terminal ' + cmd).split())
 
     def run_as_sudo_user(self, cmd):
         print('EXECUTE:\t' + '\t'.join(cmd))
@@ -366,7 +366,7 @@ class Gui:
 # Server menu
 
     def on_mi_initial_setup_activate(self, widget):
-        self.run_term('./scripts/initial-setup.sh')
+        self.run_term('./initial-setup.sh')
 
     def on_mi_configuration_network_activate(self, widget):
         ip_dialog.Ip_Dialog(self.main_window)

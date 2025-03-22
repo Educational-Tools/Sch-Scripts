@@ -1,7 +1,5 @@
 #!/bin/sh
 # Work around LP: #345374 by setting mtu=1492 for sis19x NICs.
-# This is a workaround for the bug in the kernel driver.
-# Modern hardware should not be affected by this bug. 
 
 test -d /sys/module/sis190 || exit 0
 

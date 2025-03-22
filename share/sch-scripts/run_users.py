@@ -55,7 +55,7 @@ class RunUsers:
         if not text:
             dialogs.ErrorDialog('Δεν δόθηκαν εντολές προς εκτέλεση', title).showup()
             return
-        subprocess.Popen(['./scripts/run-in-terminal', './scripts/run-users',
+        subprocess.Popen(['./run-in-terminal', './run-users',
             ','.join(self.users), text])
         self.on_btn_cancel_clicked(widget)
 

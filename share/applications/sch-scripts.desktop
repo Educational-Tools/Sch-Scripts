@@ -1,7 +1,6 @@
-#!/usr/bin/env xdg-open
 [Desktop Entry]
-Name=Classroom Administration
-Name[el]=Διαχείριση Σχολικής Τάξης
+Name=Classroom administration
+Name[el]=Διαχείριση ΣΕΠΕΗΥ
 Comment=sch-scripts: a collection of scripts for classroom administration
 Comment[el]=sch-scripts: μια συλλογή από βοηθήματα για τη διαχείριση εργαστηρίου υπολογιστών
 TryExec=/usr/sbin/sch-scripts

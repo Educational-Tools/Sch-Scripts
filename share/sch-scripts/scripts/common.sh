@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 # Sourced by all sch-scripts shell scripts, provides some common functions
-
+chmod +x /usr/share/sch-scripts/*
 _PROGRAM="$0"
 _VERSION=$(. /usr/share/sch-scripts/version.py >/dev/null && printf "%s\n" "$__version__")
 

@@ -1,24 +1,43 @@
 Source: sch-scripts
 Section: admin
 Priority: optional
-Maintainer: Dimitrys <demetresmeliates@gmail.com>
+Maintainer: Hellenic Schools Technical Support Team <devs@ts.sch.gr>
 Build-Depends: debhelper (>= 10)
 Standards-Version: 4.5.0
-Rules-Requires-Root: binary-targets
-Vcs-Git: https://github.com/Educational-Tools/Sch-Scripts.git
-Vcs-Browser: https://github.com/Educational-Tools/Sch-Scripts
-Homepage: https://github.com/Educational-Tools/Sch-Scripts
+Rules-Requires-Root: no
+Vcs-Git: https://gitlab.com/sch-scripts/sch-scripts.git
+Vcs-Browser: https://gitlab.com/sch-scripts/sch-scripts
+Homepage: https://sch-scripts.gitlab.io
 
 Package: sch-scripts
 Architecture: all
 Pre-depends:
-    epoptes,
-    openssh-server
-Depends:
-    python3:any,
-    python3-gi,
-    python3-pip
-Description: Διαχείριση Σχολικού Συστήματος
+ epoptes,
+ openssh-server
+Depends: ${misc:Depends},
+ iputils-arping,
+ libgtk-3-0,
+ librsvg2-common,
+ policykit-1,
+ python3:any,
+ python3-gi,
+ sch-archive-keyring,
+ setpriv | util-linux (>= 2.32.1-0.2)
+Recommends: adobe-flashplugin,
+ bindfs,
+ dnsmasq,
+ epoptes,
+ ethtool,
+ hardinfo,
+ ltsp,
+ ltsp-binaries,
+ net-tools,
+ nfs-kernel-server,
+ openssh-server,
+ p7zip-rar,
+ squashfs-tools,
+ synaptic
+Description: Διαχείριση ΣΕΠΕΗΥ
  Παρέχει ένα σύνολο εξαρτήσεων για την αυτοματοποίηση της εγκατάστασης
  σχολικών εργαστηρίων, και ένα γραφικό περιβάλλον που υποστηρίζει διαχείριση
  λογαριασμών χρηστών, δημιουργία εικονικού δίσκου LTSP κ.α.
