@@ -100,7 +100,7 @@ class Gui:
         # TODO: Maybe throw an error message if not os.path.isfile(filename)
 
     def run_term(self, cmd):
-        subprocess.Popen(('./scripts/run-in-terminal ' + cmd).split())
+        subprocess.Popen(('./scripts/run-in-terminal' + cmd).split())
 
     def run_as_sudo_user(self, cmd):
         print('EXECUTE:\t' + '\t'.join(cmd))
