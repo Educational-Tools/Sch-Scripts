@@ -1,7 +1,7 @@
 #!/bin/bash
 
-set -o pipefail
 set -e
+
 
 # Global Variables
 REVERT=false
@@ -17,7 +17,7 @@ DEST_ROOT="/usr/share/sch-scripts"
 PROJECT_ETC="etc"
 PROJECT_LIB="lib"
 PROJECT_SHARE="share"
-PROJECT_SBIN="sbin"
+PROJECT_SBIN="sbin" 
 PROJECT_ROOT="share/sch-scripts"
 
 #Specific Project Directories
@@ -44,6 +44,18 @@ ERROR_MOVE_FILES="\033[1mΣφάλμα: Αποτυχία μετακίνησης �
 ERROR_REVERT_FILES="\033[1mΣφάλμα: Αποτυχία επαναφοράς αρχείων.\033[0m"
 ERROR_REMOVE_DEPENDENCIES="\033[1mΣφάλμα: Αποτυχία απεγκατάστασης εξαρτήσεων.\033[0m"
  
+
+# Check for --install flag
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install) INSTALL_FLAG=true ;;
+    *) PARAMS+=("$1") ;;
+  esac
+  shift
+done
+
+set -- "${PARAMS[@]}"
+
 
 backup_file() {
     local dest_dir="$1"
@@ -204,7 +216,7 @@ install_files() {
     for file in "$PROJECT_BINS"/*; do
          install_path "$file" "$DEST_BINS" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
         chmod +x "$DEST_BINS/$(basename "$file")" || { echo "Failed to set execute permissions on $DEST_BINS/$(basename \"$file\")"; exit 1; }
-
+    
     done
     install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
         echo -e "\033[1mΑποτυχία δημιουργίας /etc/systemd/system/shared-folders.service\033[0m"
@@ -288,7 +300,7 @@ main() {
     else
         remove_sch
     fi  
-}
+} 
 if [ ! -d "$PROJECT_CONFIGS" ]; then
     mkdir -p "$PROJECT_CONFIGS"
     cp "$PROJECT_ROOT/ltsp.conf" "$PROJECT_CONFIGS/ltsp.conf"
