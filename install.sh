@@ -1,15 +1,6 @@
 #!/bin/bash
 
-if [[ $EUID -ne 0 ]]; then
-    echo -e "\033[1mΑυτό το σενάριο πρέπει να εκκινηθεί με δικαιώματα διαχειριστή: Παρακαλώ εισάγετε τον κωδικό σας sudo:\033[1m"
-    sudo true || {
-        echo -e "\033[1mΣφάλμα: Αποτυχία λήψης δικαιωμάτων sudo.\033[1m"
-        exit 1
-    }
-    sudo bash "$0" "$@"
-    exit $?
-fi
-
+set -o pipefail
 set -e
 
 # Global Variables
@@ -48,11 +39,11 @@ SHARE_DIR="/home/Shared"
 PUBLIC_DIR="/home/Shared/Public"
 
 # Error messages.
-ERROR_INSTALL_DEPENDENCIES="\033[1mΣφάλμα: Αποτυχία εγκατάστασης εξερτήσεων.\033[1m"
-ERROR_MOVE_FILES="\033[1mΣφάλμα: Αποτυχία μετακίνησης αρχείων στην τοποθεσία τους.\033[1m"
-ERROR_REVERT_FILES="\033[1mΣφάλμα: Αποτυχία επαναφοράς αρχείων.\033[1m"
-ERROR_REMOVE_DEPENDENCIES="\033[1mΣφάλμα: Αποτυχία απεγκατάστασης εξαρτήσεων.\033[1m"
-
+ERROR_INSTALL_DEPENDENCIES="\033[1mΣφάλμα: Αποτυχία εγκατάστασης εξαρτήσεων.\033[0m"
+ERROR_MOVE_FILES="\033[1mΣφάλμα: Αποτυχία μετακίνησης αρχείων στην τοποθεσία τους.\033[0m"
+ERROR_REVERT_FILES="\033[1mΣφάλμα: Αποτυχία επαναφοράς αρχείων.\033[0m"
+ERROR_REMOVE_DEPENDENCIES="\033[1mΣφάλμα: Αποτυχία απεγκατάστασης εξαρτήσεων.\033[0m"
+ 
 
 backup_file() {
     local dest_dir="$1"
@@ -60,7 +51,7 @@ backup_file() {
     local dest_file="$dest_dir/$(basename "$source_file")"
     local bak_file="$dest_file.bak"
 
-    # Check if the destination file exists.
+   
     if [[ -f "$dest_file" ]]; then
         echo "Backing up: $dest_file to $bak_file"
         mv "$dest_file" "$bak_file" || exit 1
@@ -73,7 +64,7 @@ revert_file() {
     local file_path="$dest_dir/$(basename "$source_file")"
     local bak_file="$file_path.bak"
     if [[ -f "$bak_file" ]]; then
-        echo -e "\033[1mΕπαναφορά: $file_path από $bak_file\033[1m"
+        echo -e "\033[1mΕπαναφορά: $file_path από $bak_file\033[0m"
         mv "$bak_file" "$file_path"
     else
         rm -f "$file_path"
@@ -84,11 +75,11 @@ revert_file() {
 install_path() {
     local source_path="$1"
     local dest_path="$2"
-    if [[ -d "$source_path" ]]; then
-        # If it's a directory, use cp -r to copy recursively.
+    if [[ -d "$source_path" ]]; then      
         mkdir -p "$dest_path/$(basename "$source_path")"
         cp -r "$source_path"/* "$dest_path/$(basename "$source_path")" || { 
-          echo -e "\033[1mΑποτυχία αντιγραφής καταλόγου.\033[1m"
+          echo -e "\033[1mΑποτυχία αντιγραφής καταλόγου.\033[0m"
+
           exit 1
         }
     else
@@ -105,14 +96,14 @@ install_path() {
 # Wait for apt lock.
 wait_apt_lock() {
     while ! flock -w 10 /var/lib/dpkg/lock-frontend -c :; do
-        echo -e "\033[1mΑναμονή για apt lock...\033[1m"
+        echo -e "\033[1mΑναμονή για apt lock...\033[0m"
         sleep 1
     done
 }
 install_dependencies() {
     wait_apt_lock
     apt-get update
-    apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 $DEPENDENCIES || {
+    apt-get install -y -o APT::Acquire::http::Pipeline-Depth=0 -o APT::Acquire::Retries=10 --allow-unauthenticated $DEPENDENCIES || {
         echo -e "$ERROR_INSTALL_DEPENDENCIES"
         exit 1 
     }
@@ -151,23 +142,23 @@ detect_administrator() {
 }
 start_services() {   
     systemctl enable shared-folders.service || {
-        echo -e "\033[1mΣφάλμα: Αποτυχία ενεργοποίησης shared-folders.service.\033[1m"
+        echo -e "\033[1mΣφάλμα: Αποτυχία ενεργοποίησης shared-folders.service.\033[0m"
         exit 1
     }
-    systemctl start shared-folders.service && echo -e "\033[1mshared-folders.service ενεργοποιήθηκε επιτυχώς.\033[1m" || {
-        echo -e "\033[1mΣφάλμα: Αποτυχία ενεργοποίησης shared-folders.service.\033[1m"
-        exit 1
+    systemctl start shared-folders.service  || {
+        echo -e "\033[1mΣφάλμα: Αποτυχία ενεργοποίησης shared-folders.service.\033[0m"
+       exit 1
     }
 
     systemctl daemon-reload
     
 }
 create_public_folder() {
-    echo -e "\033[1mΔιμηουργία Δημόσιου φακέλου...\033[1m"
+    echo -e "\033[1mΔημιουργία Δημόσιου φακέλου...\033[0m"
     test -d "$PUBLIC_DIR" && return 0
     mkdir -p "$PUBLIC_DIR"
     if [ $? -ne 0 ]; then
-        echo -e "\033[1mΣφάλμα: Αποτυχία δημιουργίας $PUBLIC_DIR.\033[1m"
+        echo -e "\033[1mΣφάλμα: Αποτυχία δημιουργίας $PUBLIC_DIR.\033[0m"
         exit 1
     fi
     chmod 0777 "$PUBLIC_DIR"
@@ -212,15 +203,15 @@ install_files() {
     done
     for file in "$PROJECT_BINS"/*; do
          install_path "$file" "$DEST_BINS" || { echo -e "$ERROR_MOVE_FILES"; exit 1; }
-        chmod +x "$DEST_BINS/$(basename "$file")" || { echo "Failed to set execute permissions on $DEST_BINS/$(basename "$file")"; exit 1; }
+        chmod +x "$DEST_BINS/$(basename "$file")" || { echo "Failed to set execute permissions on $DEST_BINS/$(basename \"$file\")"; exit 1; }
 
     done
     install -o root -g root -m 0644 "etc/systemd/system/shared-folders.service" "$DEST_ETC/systemd/system/shared-folders.service" || {
-        echo -e "\033[1mΑποτυχία δημιουργίας /etc/systemd/system/shared-folders.service\033[1m"
+        echo -e "\033[1mΑποτυχία δημιουργίας /etc/systemd/system/shared-folders.service\033[0m"
         exit 1
     }
     install -o root -g root -m 0755 "sbin/shared-folders" "$DEST_SBIN/shared-folders" || {
-        echo -e "Αποτυχία δημιουργίας /usr/sbin/shared-folders."
+        echo -e "\033[1mΑποτυχία δημιουργίας /usr/sbin/shared-folders.\033[0m"
         exit 1
     }
     echo -e "\033[1mΤα αχρεία μετακινήθηκαν επιτυχώς.\033[1m"
@@ -261,31 +252,33 @@ revert_files() {
     done
     rm -rf "$PUBLIC_DIR"
     revert_file "$DEST_ETC/systemd/system" "etc/systemd/system/shared-folders.service"
+
     revert_file "$DEST_SBIN" "sbin/shared-folders"
-    echo -e "\033[1mΤα αρχεία επαναφέρθηκαν επιτυχώς.\033[1m"
+    echo -e "\033[1mΤα αρχεία επαναφέρθηκαν επιτυχώς.\033[0m"
 
 }
 install_sch() {
-    echo -e "\033[1mΕγκατάσταση των sch-scripts...\033[1m"
+    echo -e "\033[1mΕγκατάσταση των sch-scripts...\033[0m"
 
     install_dependencies
-    echo -e "\033[1mΟι εξαρτήσεις εγκαταστήθηκαν απιτυχώς.\033[1m"
+    echo -e "\033[1mΟι εξαρτήσεις εγκαταστήθηκαν απιτυχώς.\033[0m"
     install_files
     create_public_folder
     configure_teachers
     start_services
-    echo -e "\033[1mΗ εγκατάσταση των sch-scripts ολοκληρώθηκε με επιτυχία!\033[1m"
+    echo -e "\033[1mΗ εγκατάσταση των sch-scripts ολοκληρώθηκε με επιτυχία!\033[0m"
 }
 
 remove_sch() {
-    echo -e "\033[1mΑφαίρεση των sch-scripts...\033[1m"
+    echo -e "\033[1mΑφαίρεση των sch-scripts...\033[0m"
     remove_dependencies
-    echo -e "\033[1mΟι εξαρτήσεις αφαιρέθηκαν επιτυχώς.\033[1m"
+    echo -e "\033[1mΟι εξαρτήσεις αφαιρέθηκαν επιτυχώς.\033[0m"
     revert_files
-    echo -e "\033[1mΗ επεναφορά και αφαίρεση των sch-scripts ολοκληρώθηκε επιτυχώς!\033[1m"
+    echo -e "\033[1mΗ επεναφορά και αφαίρεση των sch-scripts ολοκληρώθηκε επιτυχώς!\033[0m"
 }
 
 main() {
+
     if [[ "$1" == "-u" ]]; then
         REVERT=true
     fi
