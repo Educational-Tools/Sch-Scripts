@@ -18,12 +18,12 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install build dependencies
+    - name: Install Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential devscripts debhelper
 
-    - name: Create source tarball and build Debian package
+    - name: Zip and Build Debian Package
       run: |
         mkdir -p /tmp/debian-package
         cd $GITHUB_WORKSPACE
@@ -47,7 +47,7 @@ jobs:
         ls -al /tmp/debian-package
         ls -al $GITHUB_WORKSPACE
 
-    - name: Upload Debian package
+    - name: Upload Debian Package
       uses: actions/upload-artifact@v4
       with:
         name: sch-scripts-deb
