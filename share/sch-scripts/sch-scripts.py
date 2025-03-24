@@ -396,180 +396,71 @@ class Gui:
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Η εντολή 'ltsp dnsmasq' εκτελέστηκε."
-            error_message = "Υπήρξε ένα πρόβλημα κατά την εκτέλεση της εντολής 'ltsp dnsmasq'."
-            success = self.run_term('ltsp dnsmasq')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.run_term('ltsp dnsmasq')
 
     def on_mi_ltsp_info_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να εκτελέσετε την εντολή 'ltsp info';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Η εντολή 'ltsp info' εκτελέστηκε."
-            error_message = "Υπήρξε ένα πρόβλημα κατά την εκτέλεση της εντολής 'ltsp info'."
-            success = self.run_term('ltsp info')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.run_term('ltsp info')
 
     def on_mi_ltsp_initrd_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να εκτελέσετε την εντολή 'ltsp initrd';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Η εντολή 'ltsp initrd' εκτελέστηκε."
-            error_message = "Υπήρξε ένα πρόβλημα κατά την εκτέλεση της εντολής 'ltsp initrd'."
-            success = self.run_term('ltsp initrd')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.run_term('ltsp initrd')
 
     def on_mi_ltsp_ipxe_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να εκτελέσετε την εντολή 'ltsp ipxe';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Η εντολή 'ltsp ipxe' εκτελέστηκε."
-            error_message = "Υπήρξε ένα πρόβλημα κατά την εκτέλεση της εντολής 'ltsp ipxe'."
-            success = self.run_term('ltsp ipxe')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.run_term('ltsp ipxe')
 
     def on_mi_ltsp_kernel_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να εκτελέσετε την εντολή 'ltsp kernel';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Η εντολή 'ltsp kernel' εκτελέστηκε."
-            error_message = "Υπήρξε ένα πρόβλημα κατά την εκτέλεση της εντολής 'ltsp kernel'."
-            success = self.run_term('ltsp kernel')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.run_term('ltsp kernel')
 
     def on_mi_ltsp_nfs_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να εκτελέσετε την εντολή 'ltsp nfs';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Η εντολή 'ltsp nfs' εκτελέστηκε."
-            error_message = "Υπήρξε ένα πρόβλημα κατά την εκτέλεση της εντολής 'ltsp nfs'."
-            success = self.run_term('ltsp nfs')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.run_term('ltsp nfs')
 
     def on_mi_edit_ltsp_conf_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να επεξεργαστείτε το αρχείο '/etc/ltsp/ltsp.conf';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Το αρχείο '/etc/ltsp/ltsp.conf' άνοιξε για επεξεργασία."
-            error_message = "Υπήρξε ένα πρόβλημα κατά το άνοιγμα του αρχείου '/etc/ltsp/ltsp.conf'."
-            success = self.edit_file('/etc/ltsp/ltsp.conf')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.edit_file('/etc/ltsp/ltsp.conf')
 
     def on_mi_edit_ltsp_dnsmasq_conf_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να επεξεργαστείτε το αρχείο '/etc/dnsmasq.d/ltsp-dnsmasq.conf';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Το αρχείο '/etc/dnsmasq.d/ltsp-dnsmasq.conf' άνοιξε για επεξεργασία."
-            error_message = "Υπήρξε ένα πρόβλημα κατά το άνοιγμα του αρχείου '/etc/dnsmasq.d/ltsp-dnsmasq.conf'."
-            success = self.edit_file('/etc/dnsmasq.d/ltsp-dnsmasq.conf')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.edit_file('/etc/dnsmasq.d/ltsp-dnsmasq.conf')
 
     def on_mi_edit_ltsp_ipxe_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να επεξεργαστείτε το αρχείο '/srv/tftp/ltsp/ltsp.ipxe';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Το αρχείο '/srv/tftp/ltsp/ltsp.ipxe' άνοιξε για επεξεργασία."
-            error_message = "Υπήρξε ένα πρόβλημα κατά το άνοιγμα του αρχείου '/srv/tftp/ltsp/ltsp.ipxe'."
-            success = self.edit_file('/srv/tftp/ltsp/ltsp.ipxe')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.edit_file('/srv/tftp/ltsp/ltsp.ipxe')
 
     def on_mi_edit_grub_cfg_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να επεξεργαστείτε το αρχείο '/etc/default/grub.d/sch-scripts.cfg';"
         dlg = dialogs.AskDialog(confirm_message)
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
-            success_message = "Το αρχείο '/etc/default/grub.d/sch-scripts.cfg' άνοιξε για επεξεργασία."
-            error_message = "Υπήρξε ένα πρόβλημα κατά το άνοιγμα του αρχείου '/etc/default/grub.d/sch-scripts.cfg'."
-            success = self.edit_file('/etc/default/grub.d/sch-scripts.cfg')
-            result_dialog_type = Gtk.MessageType.INFO if success else Gtk.MessageType.ERROR
-            result_text = success_message if success else error_message
-            result_dialog = Gtk.MessageDialog(parent=self.window,
-                                                 flags=Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT,
-                                                 type=result_dialog_type,
-                                                 buttons=Gtk.ButtonsType.OK,
-                                                 text=result_text)
-            result_dialog.run()
-            result_dialog.destroy()
+            self.edit_file('/etc/default/grub.d/sch-scripts.cfg')
+
 
 # View menu
 
