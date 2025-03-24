@@ -19,6 +19,8 @@ install() {
     # Call initial-setup.sh mainly to create the teachers group, but some
     # packages might not be configured yet and the user may need to rerun it
     /usr/share/sch-scripts/scripts/initial-setup.sh --no-prompt || true
+    gsettings set org.cinnamon desktop-effects-workspace false
+    gsettings set org.cinnamon.settings-deamon.peripherals.keyboard input-sources-switcher 'alt-shift-l'
 }
 
 case "$1" in
