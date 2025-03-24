@@ -365,6 +365,8 @@ class Gui:
 
 # Server menu
 
+    #Actions
+    
     def on_mi_initial_setup_activate(self, widget):
         self.run_term('./scripts/initial-setup.sh')
 
@@ -374,6 +376,8 @@ class Gui:
     def on_mi_updates_activate(self, widget):
         """Show the updates dialog in a different process."""
         subprocess.Popen(['./updates.py'], stdin=open(os.devnull))
+
+    #LTSP Commands
 
     def on_mi_ltsp_image_activate(self, widget):
         message = "Θέλετε σίγουρα να προχωρήσετε στην δημοσίευση του εικονικού δίσκου;"
@@ -432,6 +436,8 @@ class Gui:
         response = dlg.showup()
         if response == Gtk.ResponseType.YES:
             self.run_term('ltsp nfs')
+
+    #Edit files
 
     def on_mi_edit_ltsp_conf_activate(self, widget):
         confirm_message = "Θέλετε σίγουρα να επεξεργαστείτε το αρχείο '/etc/ltsp/ltsp.conf';"
