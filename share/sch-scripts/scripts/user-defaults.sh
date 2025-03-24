@@ -1,0 +1,1 @@
+gsettings set org.cinnamon desktop-effects-workspace false
