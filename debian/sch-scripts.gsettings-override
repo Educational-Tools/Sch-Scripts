@@ -21,3 +21,8 @@ auto-update-apps=true
 
 [org.cinnamon.updates]
 allow-software-installation=false
+
+[org.gnome.desktop.input-sources]
+mru-sources=['xkb', 'us', 'xkb', 'gr']
+current=0
+xkb-options=['grp:alt_shift_toggle']
