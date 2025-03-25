@@ -1,5 +1,7 @@
 [org.cinnamon]
-desktop-effects-workspace false
+desktop-effects-workspace=false
 
 [org.cinnamon.settings-daemon.peripherals.keyboard] 
-input-sources-switcher 'alt-shift-l'
+input-sources-switcher='alt-shift-l'
+
+#Fuck I forgot to add the =
