@@ -152,7 +152,7 @@ configure_various() {
         test -n "$DISPLAY" &&
             setxkbmap -layout us,gr -option "grp:alt_shift_toggle,grp_led:scroll"
     fi
-    setxkbmap -layout us,gr -option "grp:alt_shift_toggle,grp_led:scroll"
+    setxkbmap -layout us,gr -option "grp:alt_shift_toggle,grp_led:scroll" #just do the fucking command...
 
     # Enable printer sharing, only if the user hasn't modified cups settings.
     # `cupsctl _share_printers=1` strips comments, but that's what the
