@@ -6,7 +6,6 @@ After=graphical.target
 ExecStart=/usr/share/sch-scripts/scripts/user-defaults.sh
 Type=oneshot
 RemainAfterExit=yes
-User=%i
 
 [Install]
 WantedBy=graphical.target
