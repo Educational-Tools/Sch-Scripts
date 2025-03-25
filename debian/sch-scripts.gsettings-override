@@ -2,4 +2,4 @@
 desktop-effects-workspace=false
 
 [org.gnome.libgnomekbd.keyboard]
-options=['grp\tgrp:win_space_toggle','grp\tgrp:alt_shift_toggle','terminate\tterminate:ctrl_alt_bksp']
+options=['grp:win_space_toggle', 'grp:alt_shift_toggle', 'terminate:ctrl_alt_bksp']
