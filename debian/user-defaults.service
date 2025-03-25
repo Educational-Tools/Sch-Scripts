@@ -1,0 +1,12 @@
+[Unit]
+Description=Set User Defaults
+After=graphical.target
+
+[Service]
+ExecStart=/usr/share/sch-scripts/scripts/user-defaults.sh
+Type=oneshot
+RemainAfterExit=yes
+User=%i
+
+[Install]
+WantedBy=graphical.target
