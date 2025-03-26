@@ -155,7 +155,7 @@ configure_various() {
 
     # This setting is quite stuborn in LMDE, I will force it with a loop...
 
-`    for user in /home/*; do
+    for user in /home/*; do
         # Check if the word "dconf" exists anywhere in the .profile file
         if ! grep -q "dconf" "$user/.profile"; then
             # Append the exact dconf commands to the user's .profile
