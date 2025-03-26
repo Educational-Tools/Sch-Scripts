@@ -16,6 +16,3 @@ event-sounds=false
 
 [org.cinnamon.updates]
 auto-update-apps=true
-
-[org.cinnamon.updates]
-allow-software-installation=false
