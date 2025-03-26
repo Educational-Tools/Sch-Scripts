@@ -156,16 +156,17 @@ configure_various() {
     # This setting is quite stuborn in LMDE, I will force it with a loop...
 
     for user in /home/*; do
-        # Ensure that we're appending exact lines to the .profile
-        # Use file redirection to append the exact lines
-        {
-            echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
-            echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
-            echo "dconf update"
-        } >> "$user/.profile"
+        # Check if the dconf lines are already in the .profile
+        if ! grep -q "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\"" "$user/.profile" && \
+        ! grep -q "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\"" "$user/.profile"; then
+            # Append the exact dconf commands to the user's .profile
+            {
+                echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
+                echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
+                echo "dconf update"
+            } >> "$user/.profile"
+        fi
     done
-
-
 
     # Enable printer sharing, only if the user hasn't modified cups settings.
     # `cupsctl _share_printers=1` strips comments, but that's what the
