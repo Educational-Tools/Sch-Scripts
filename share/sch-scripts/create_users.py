@@ -6,6 +6,8 @@ Create users dialog.
 """
 import datetime
 import gi
+import os
+
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
@@ -154,7 +156,6 @@ class NewUsersDialog:
                         Gtk.main_iteration()
                     self.sf.add([classn])
 
-
         # And finally, create the users
         cmd_error = str()
         for classn in self.classes:
@@ -186,6 +187,17 @@ class NewUsersDialog:
                 users_created += 1
                 progressbar.set_fraction(float(users_created) / float(total_users))
 
+                # Check and update .profile for dconf settings
+                profile_path = f"/home/{uname}/.profile"
+                if os.path.exists(profile_path):
+                    with open(profile_path, 'r+') as profile_file:
+                        content = profile_file.read()
+                        if "dconf" not in content:
+                            profile_file.write("\n")
+                            profile_file.write("dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\"\n")
+                            profile_file.write("dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\\tgrp:alt_shift_toggle']\"\n")
+                            profile_file.write("dconf update\n")
+
         #TODO expect returned value from add_user
         if False and cmd_error != "":
             self.glade.get_object('error_label').set_text(cmd_error.strip())
@@ -208,4 +220,3 @@ class NewUsersDialog:
         dialog = self.glade.get_object('help_dialog')
         dialog.run()
         dialog.hide()
-

@@ -152,13 +152,9 @@ configure_various() {
             setxkbmap -layout us,gr -option '' \
                 -option grp:alt_shift_toggle,grp_led:scroll
     fi
-
-    # This setting is quite stuborn in LMDE, I will force it with a loop...
-
+    
     for user in /home/*; do
-        # Check if the word "dconf" exists anywhere in the .profile file
         if ! grep -q "dconf" "$user/.profile"; then
-            # Append the exact dconf commands to the user's .profile
             {
                 echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
                 echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
