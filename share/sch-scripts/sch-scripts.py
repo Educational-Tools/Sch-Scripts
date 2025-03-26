@@ -281,6 +281,7 @@ class Gui:
 # File menu
 
     def on_menubar_open_epoptrs(self,widget):
+        self.run(epoptes)
         
 
     def on_menubar_set_focus_child(self, widget):
