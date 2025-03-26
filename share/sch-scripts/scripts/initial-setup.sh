@@ -155,10 +155,9 @@ configure_various() {
 
     # This setting is quite stuborn in LMDE, I will force it with a loop...
 
-    for user in /home/*; do
-        # Check if the dconf lines are already in the .profile
-        if ! grep -q "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\"" "$user/.profile" && \
-        ! grep -q "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\"" "$user/.profile"; then
+`    for user in /home/*; do
+        # Check if the word "dconf" exists anywhere in the .profile file
+        if ! grep -q "dconf" "$user/.profile"; then
             # Append the exact dconf commands to the user's .profile
             {
                 echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
