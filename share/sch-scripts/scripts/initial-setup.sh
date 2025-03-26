@@ -153,16 +153,16 @@ configure_various() {
                 -option grp:alt_shift_toggle,grp_led:scroll
     fi
 
-# Admin has to run this script to enable the keyboard layout switching for new users. Or when he's done creating the users, then he can run it.
-for user in /home/*; do
-    if [ "$user" != "/home/Shared" ] && ! grep -q "dconf" "$user/.profile"; then
-        {
-            echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
-            echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
-            echo "dconf update"
-        } >> "$user/.profile"
-    fi
-done
+    # Admin has to run this script to enable the keyboard layout switching f
+    for user in /home/*; do
+        if [ "$user" != "/home/Shared" ] && ! grep -q "dconf" "$user/.profile"; then
+            {
+                echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
+                echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
+                echo "dconf update"
+            } >> "$user/.profile"
+        fi
+    done
 
     # Enable printer sharing, only if the user hasn't modified cups settings.
     # `cupsctl _share_printers=1` strips comments, but that's what the
