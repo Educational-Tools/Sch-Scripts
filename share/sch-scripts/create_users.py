@@ -187,16 +187,14 @@ class NewUsersDialog:
                 users_created += 1
                 progressbar.set_fraction(float(users_created) / float(total_users))
 
-                # Check and update .profile for dconf settings
+                # Edit .profile for dconf settings
                 profile_path = f"/home/{uname}/.profile"
                 if os.path.exists(profile_path):
-                    with open(profile_path, 'r+') as profile_file:
-                        content = profile_file.read()
-                        if "dconf" not in content:
-                            profile_file.write("\n")
-                            profile_file.write("dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\"\n")
-                            profile_file.write("dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\\tgrp:alt_shift_toggle']\"\n")
-                            profile_file.write("dconf update\n")
+                    with open(profile_path, 'a') as profile_file:
+                        profile_file.write("\n")
+                        profile_file.write("dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\"\n")
+                        profile_file.write("dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\\tgrp:alt_shift_toggle']\"\n")
+                        profile_file.write("dconf update\n")
 
         #TODO expect returned value from add_user
         if False and cmd_error != "":
