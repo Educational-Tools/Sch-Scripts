@@ -144,13 +144,11 @@ configure_various() {
         /etc/ssh/sshd_config
 
     # Allow keyboard layout switching with Alt+Shift (LP: #1892014)
-    if grep '^XKBOPTIONS="grp_led:scroll"$' /etc/default/keyboard; then
-        search_and_replace '^XKBOPTIONS="grp_led:scroll"$' \
-            'XKBOPTIONS="grp:alt_shift_toggle,grp_led:scroll"' \
-            /etc/default/keyboard 0
-        test -n "$DISPLAY" &&
-            setxkbmap -layout us,gr -option '' \
-                -option grp:alt_shift_toggle,grp_led:scroll
+    if grep -q '^XKBOPTIONS="grp_led:scroll"$' /etc/default/keyboard; then
+        sed -i 's/^XKBOPTIONS="grp_led:scroll"$/XKBOPTIONS="grp:alt_shift_toggle,grp_led:scroll"/' /etc/default/keyboard
+        if [ -n "$DISPLAY" ]; then
+            setxkbmap -layout us,gr -option "grp:alt_shift_toggle,grp_led:scroll"
+        fi
     fi
 
     # Enable printer sharing, only if the user hasn't modified cups settings.
