@@ -282,7 +282,7 @@ class Gui:
 
     def on_mi_open_epoptes(self, widget):
         try:
-            subprocess.run(["epoptes"], check=True)
+            subprocess.run(["gio", "open","/usr/share/applications/epoptes.desktop"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Σφάλμα κατά την εκκίνηση του epoptes: {e}")
         except FileNotFoundError:
