@@ -144,12 +144,24 @@ configure_various() {
         /etc/ssh/sshd_config
 
     # Allow keyboard layout switching with Alt+Shift (LP: #1892014)
-    if grep -q '^XKBOPTIONS="grp_led:scroll"$' /etc/default/keyboard; then
-        sed -i 's/^XKBOPTIONS="grp_led:scroll"$/XKBOPTIONS="grp:alt_shift_toggle,grp_led:scroll"/' /etc/default/keyboard
-        if [ -n "$DISPLAY" ]; then
-            setxkbmap -layout us,gr -option "grp:alt_shift_toggle,grp_led:scroll"
-        fi
+    if grep '^XKBOPTIONS="grp_led:scroll"$' /etc/default/keyboard; then
+        search_and_replace '^XKBOPTIONS="grp_led:scroll"$' \
+            'XKBOPTIONS="grp:alt_shift_toggle,grp_led:scroll"' \
+            /etc/default/keyboard 0
+        test -n "$DISPLAY" &&
+            setxkbmap -layout us,gr -option '' \
+                -option grp:alt_shift_toggle,grp_led:scroll
     fi
+
+    # This setting is quite stuborn in LMDE, I will force it with a loop...
+
+    for user in /home/*; do
+        echo -e "\n# Set keyboard shortcut and update dconf\n\
+    dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp:alt_shift_toggle', 'grp_led:scroll']\"\n\
+    dconf update" >> $user/.profile
+    done
+
+
 
     # Enable printer sharing, only if the user hasn't modified cups settings.
     # `cupsctl _share_printers=1` strips comments, but that's what the
