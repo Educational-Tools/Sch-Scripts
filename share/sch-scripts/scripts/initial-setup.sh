@@ -156,9 +156,13 @@ configure_various() {
     # This setting is quite stuborn in LMDE, I will force it with a loop...
 
     for user in /home/*; do
-        echo -e "\n# Set keyboard shortcut and update dconf\n\
-    dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp:alt_shift_toggle', 'grp_led:scroll']\"\n\
-    dconf update" >> $user/.profile
+        # Ensure that we're appending exact lines to the .profile
+        # Use file redirection to append the exact lines
+        {
+            echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
+            echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
+            echo "dconf update"
+        } >> "$user/.profile"
     done
 
 
