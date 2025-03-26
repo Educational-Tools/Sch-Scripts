@@ -280,6 +280,9 @@ class Gui:
 
 # File menu
 
+    def on_menubar_open_epoptrs(self,widget):
+        
+
     def on_menubar_set_focus_child(self, widget):
         print(widget)
 
