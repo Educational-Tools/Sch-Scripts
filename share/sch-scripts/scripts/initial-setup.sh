@@ -152,8 +152,7 @@ configure_various() {
             setxkbmap -layout us,gr -option '' \
                 -option grp:alt_shift_toggle,grp_led:scroll
     fi
-
-    # Admin has to run this script to enable the keyboard layout switching f
+    
     for user in /home/*; do
         if [ "$user" != "/home/Shared" ] && ! grep -q "dconf" "$user/.profile"; then
             {
