@@ -279,18 +279,6 @@ class Gui:
         exit()
 
 # File menu
-
-    def on_mi_open_epoptes(self, widget):
-        try:
-            subprocess.run(["/usr/share/applications/epoptes.desktop"], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Σφάλμα κατά την εκκίνηση του epoptes: {e}")
-        except FileNotFoundError:
-            print("Το πρόγραμμα epoptes δεν έχει εγκατασταθεί ή δεν υπάρχει στο PATH.")
-        except Exception as e:
-            print(f"Προέκυψε ένα σφάλμα κατά την εκκίνηση του epoptes: {e}")
-
-        
     def on_menubar_set_focus_child(self, widget):
         print(widget)
 
