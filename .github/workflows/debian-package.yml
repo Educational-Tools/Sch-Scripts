@@ -36,7 +36,7 @@ jobs:
         # Move the source tarball to the build directory.  debuild expects it in the parent
         mv "$TARBALL" "$BUILD_DIR"
         # Copy the source code to the build directory.
-        cp -r sch-scripts "$BUILD_DIR"
+        cp -r "$GITHUB_WORKSPACE/sch-scripts" "$BUILD_DIR"
         # Change to the directory containing the debian directory.
         cd "$BUILD_DIR/sch-scripts"
         # Run debuild from the correct location.
@@ -48,8 +48,8 @@ jobs:
       run: |
         ls -al /tmp/debian-package
         ls -al $GITHUB_WORKSPACE
-        ls -al $GITHUB_WORKSPACE/build-dir # Add this line to list the build dir
-        ls -al $GITHUB_WORKSPACE/build-dir/sch-scripts # Add this line
+        ls -al $GITHUB_WORKSPACE/build-dir
+        ls -al $GITHUB_WORKSPACE/build-dir/sch-scripts
 
     - name: Upload Debian Package
       uses: actions/upload-artifact@v4
