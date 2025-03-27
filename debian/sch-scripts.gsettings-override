@@ -17,21 +17,17 @@ event-sounds=false
 [org.cinnamon.updates]
 auto-update-apps=true
 
-[org.gnome.desktop.lockdown]
+[org.cinnamon.desktop.lockdown]
 disable-user-switching=true
+
+[org.cinnamon.desktop.screensaver]
+user-switch-enabled=false
+
+[org.gnome.desktop.screensaver]
+user-switch-enabled=false
 
 [org.gnome.settings-daemon.plugins.power]
 sleep-inactive-ac-type='nothing'
-sleep-inactive-battery-type='nothing'
-lid-close-ac-action='nothing'
-lid-close-battery-action='nothing'
 
-[org.cinnamon.SessionManager]
-power-options-button-visible=false
-
-[org.cinnamon.desktop.session]
-shutdown-action='shutdown'
-restart-action='restart'
-cancel-action='cancel'
-
-# Try 1
+[org.cinnamon.settings-daemon.plugins.power]
+button-hibernate='nothing'
