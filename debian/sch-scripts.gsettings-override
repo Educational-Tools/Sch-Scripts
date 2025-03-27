@@ -16,3 +16,9 @@ event-sounds=false
 
 [org.cinnamon.updates]
 auto-update-apps=true
+
+[org.gnome.desktop.lockdown]
+disable-user-switching=true
+
+[org.gnome.settings-daemon.plugins.power]
+sleep-inactive-ac-type='nothing'
