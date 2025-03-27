@@ -23,29 +23,33 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential devscripts debhelper
 
-    - name: Zip and Build Debian Package
+    - name: Build Debian Package
       run: |
         mkdir -p /tmp/debian-package
         cd $GITHUB_WORKSPACE
         VERSION=$(dpkg-parsechangelog --show-field Version | sed 's/-.*//')
         TARBALL="sch-scripts_${VERSION}.orig.tar.gz"
         git archive --format=tar.gz --prefix=sch-scripts/ -o $TARBALL HEAD
-        mv $TARBALL /tmp/debian-package/
+        # Create a temporary directory to build the package in
+        BUILD_DIR="$GITHUB_WORKSPACE/build-dir"
+        mkdir -p "$BUILD_DIR"
+        # Move the source tarball to the build directory.  debuild expects it in the parent
+        mv "$TARBALL" "$BUILD_DIR"
+        # Copy the source code to the build directory.
+        cp -r sch-scripts "$BUILD_DIR"
+        # Change to the directory containing the debian directory.
+        cd "$BUILD_DIR/sch-scripts"
+        # Run debuild from the correct location.
         debuild -us -uc
+        # Move the resulting .deb files to the desired output directory
         find .. -name "*.deb" -exec mv {} /tmp/debian-package/ \;
-      shell: /usr/bin/bash -e {0}
-      env:
-        pythonLocation: /opt/hostedtoolcache/Python/3.13.2/x64
-        PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.2/x64/lib/pkgconfig
-        Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.2/x64
-        Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.2/x64
-        Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.2/x64
-        LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.2/x64/lib
 
     - name: List Directories
       run: |
         ls -al /tmp/debian-package
         ls -al $GITHUB_WORKSPACE
+        ls -al $GITHUB_WORKSPACE/build-dir # Add this line to list the build dir
+        ls -al $GITHUB_WORKSPACE/build-dir/sch-scripts # Add this line
 
     - name: Upload Debian Package
       uses: actions/upload-artifact@v4
