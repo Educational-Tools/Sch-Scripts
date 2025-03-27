@@ -22,3 +22,16 @@ disable-user-switching=true
 
 [org.gnome.settings-daemon.plugins.power]
 sleep-inactive-ac-type='nothing'
+sleep-inactive-battery-type='nothing'
+lid-close-ac-action='nothing'
+lid-close-battery-action='nothing'
+
+[org.cinnamon.SessionManager]
+power-options-button-visible=false
+
+[org.cinnamon.desktop.session]
+shutdown-action='shutdown'
+restart-action='restart'
+cancel-action='cancel'
+
+# Try 1
