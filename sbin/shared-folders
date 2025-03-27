@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 if [ ! -x /usr/share/sch-scripts/shared_folders.py ]; then
-    echo "/usr/share/sch-scripts/shared_folders.py not found!" >&2
+    echo "Το αρχείο /usr/share/sch-scripts/shared_folders.py δεν βρέθηκε" >&2
     exit 1
 fi
 cd /usr/share/sch-scripts

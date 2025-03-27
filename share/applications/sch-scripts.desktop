@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Classroom administration
+Name=Classroom Administration
 Name[el]=Διαχείριση ΣΕΠΕΗΥ
-Comment=sch-scripts: a collection of scripts for classroom administration
-Comment[el]=sch-scripts: μια συλλογή από βοηθήματα για τη διαχείριση εργαστηρίου υπολογιστών
+Comment=sch-scripts: A collection of scripts for classroom administration
+Comment[el]=sch-scripts: Μια συλλογή από βοηθήματα για τη διαχείριση εργαστηρίου υπολογιστών
 TryExec=/usr/sbin/sch-scripts
 Exec=/usr/sbin/sch-scripts
 Icon=sch-scripts
