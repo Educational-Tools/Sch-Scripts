@@ -90,14 +90,9 @@ configure_teachers() {
         teacher_home=$(getent passwd "$teacher" | awk -F: '{ print $6 }')
         chmod 755 "$teacher_home"
     done
-    #Globally set the School's wallpaper, if there isn't it sets the default one.
-    user_to_run_gsettings=$(who | awk '/:0/ {print $1}')
 
-    if [ -n "$user_to_run_gsettings" ]; then
-        su - "$user_to_run_gsettings" -c "DISPLAY=:0 gsettings set org.gnome.desktop.background picture-uri 'file:///usr/share/backgrounds/sch-walls/$(hostname).png'" &
-    else
-        echo "Could not determine the user to run gsettings as. Wallpaper not set."
-    fi
+    gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png
+
 }
 
 configure_symlinks() {
