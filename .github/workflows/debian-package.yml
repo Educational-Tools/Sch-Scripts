@@ -12,8 +12,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -25,42 +23,35 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential devscripts debhelper
 
-    - name: Build Debian Package
+    - name: Zip and Build Debian Package
       run: |
-        # Define variables for paths
-        OUTPUT_DIR=/tmp/debian-package
-        BUILD_DIR="$GITHUB_WORKSPACE/build-dir"
-        SOURCE_DIR="$GITHUB_WORKSPACE/sch-scripts"
-        PACKAGE_NAME="sch-scripts"
-        
-        mkdir -p "$OUTPUT_DIR"
-        cd "$GITHUB_WORKSPACE"
+        mkdir -p /tmp/debian-package
+        cd $GITHUB_WORKSPACE
         VERSION=$(dpkg-parsechangelog --show-field Version | sed 's/-.*//')
-        TARBALL="${PACKAGE_NAME}_${VERSION}.orig.tar.gz"
-        git archive --format=tar.gz --prefix="${PACKAGE_NAME}/" -o "$TARBALL" HEAD
-        mkdir -p "$BUILD_DIR"
-        mv "$TARBALL" "$BUILD_DIR"
-        cp -r "$SOURCE_DIR" "$BUILD_DIR"
-        cd "$BUILD_DIR/${PACKAGE_NAME}"
+        TARBALL="sch-scripts_${VERSION}.orig.tar.gz"
+        git archive --format=tar.gz --prefix=sch-scripts/ -o $TARBALL HEAD
+        mv $TARBALL /tmp/debian-package/
         debuild -us -uc
-        find .. -name "*.deb" -exec mv {} "$OUTPUT_DIR/" \;
+        find .. -name "*.deb" -exec mv {} /tmp/debian-package/ \;
+      shell: /usr/bin/bash -e {0}
+      env:
+        pythonLocation: /opt/hostedtoolcache/Python/3.13.2/x64
+        PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.2/x64/lib/pkgconfig
+        Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.2/x64
+        Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.2/x64
+        Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.2/x64
+        LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.2/x64/lib
 
     - name: List Directories
       run: |
-        echo "Output Directory:"
-        ls -al "$OUTPUT_DIR"
-        echo "GitHub Workspace:"
-        ls -al "$GITHUB_WORKSPACE"
-        echo "Build Directory:"
-        ls -al "$GITHUB_WORKSPACE/build-dir"
-        echo "Build Directory/Package:"
-        ls -al "$GITHUB_WORKSPACE/build-dir/${PACKAGE_NAME}"
+        ls -al /tmp/debian-package
+        ls -al $GITHUB_WORKSPACE
 
     - name: Upload Debian Package
       uses: actions/upload-artifact@v4
       with:
         name: sch-scripts-deb
-        path: "$OUTPUT_DIR/*.deb"
+        path: /tmp/debian-package/*.deb
         if-no-files-found: error
         compression-level: 6
         overwrite: false
