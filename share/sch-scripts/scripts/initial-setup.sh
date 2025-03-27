@@ -131,7 +131,7 @@ configure_symlinks() {
     # Work around for keyboard layout switching with Alt+Shift (LP: #1892014)
     # Adds 3 lines to each ueers .profile file. 
     symlink /usr/share/sch-scripts/conf/dconfs.sh \
-        /etc/profile.d/apply_dconf_settings.sh
+        /etc/profile.d/dconf_edits.sh
 }
 
 
