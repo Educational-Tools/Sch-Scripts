@@ -31,3 +31,6 @@ sleep-inactive-ac-type='nothing'
 
 [org.cinnamon.settings-daemon.plugins.power]
 button-hibernate='nothing'
+
+[org.gnome.desktop.background]
+picture-uri=file:///usr/share/backgrounds/sch-walls/$(hostname).png
