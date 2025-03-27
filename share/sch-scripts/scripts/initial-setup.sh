@@ -92,7 +92,6 @@ configure_teachers() {
     done
 }
 
-# Create symlinks together and sorted for easier overview for postrm
 configure_symlinks() {
     # Immediately show security updates, don't install them in the background
     symlink /usr/share/sch-scripts/conf/apt.conf \
@@ -129,7 +128,12 @@ configure_symlinks() {
         symlink /usr/share/mate/applications/defaults.list \
             /usr/local/share/applications/mimeapps.list
     fi
+    # Work around for keyboard layout switching with Alt+Shift (LP: #1892014)
+    # Adds 3 lines to each ueers .profile file. 
+    symlink /usr/share/sch-scripts/conf/dconfs.sh \
+        /etc/profile.d/apply_dconf_settings.sh
 }
+
 
 configure_various() {
     # Ensure that "server" is resolvable by DNS.
@@ -144,6 +148,7 @@ configure_various() {
         /etc/ssh/sshd_config
 
     # Allow keyboard layout switching with Alt+Shift (LP: #1892014)
+    # Does not work anymore...
     if grep '^XKBOPTIONS="grp_led:scroll"$' /etc/default/keyboard; then
         search_and_replace '^XKBOPTIONS="grp_led:scroll"$' \
             'XKBOPTIONS="grp:alt_shift_toggle,grp_led:scroll"' \
@@ -152,16 +157,6 @@ configure_various() {
             setxkbmap -layout us,gr -option '' \
                 -option grp:alt_shift_toggle,grp_led:scroll
     fi
-    
-    for user in /home/*; do
-        if [ "$user" != "/home/Shared" ] && ! grep -q "dconf" "$user/.profile"; then
-            {
-                echo "dconf write /org/gnome/libgnomekbd/keyboard/layouts \"['gr', 'us']\""
-                echo "dconf write /org/gnome/libgnomekbd/keyboard/options \"['grp\tgrp:alt_shift_toggle']\""
-                echo "dconf update"
-            } >> "$user/.profile"
-        fi
-    done
 
     # Enable printer sharing, only if the user hasn't modified cups settings.
     # `cupsctl _share_printers=1` strips comments, but that's what the
