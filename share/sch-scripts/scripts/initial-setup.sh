@@ -138,9 +138,13 @@ configure_symlinks() {
 
 configure_various() {
     # Set the background for the users.
+if [ -n "$(su - "administrator" -c 'echo $DISPLAY')" ]; then
     if ! su - "administrator" -c "gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png"; then
         echo "Failed to set background for administrator."
     fi
+else
+    echo "Display not available for administrator."
+fi
     
     # Ensure that "server" is resolvable by DNS.
     if ! getent hosts server >/dev/null; then
