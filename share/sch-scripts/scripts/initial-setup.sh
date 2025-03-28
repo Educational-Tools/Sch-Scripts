@@ -139,11 +139,16 @@ configure_symlinks() {
 configure_various() {
     hostname=$(hostname)
     wallpaper_path="file:///usr/share/backgrounds/sch-walls/${hostname}.png"
-
-    if [ -f "/usr/share/backgrounds/sch-walls/${hostname}.png" ]; then
-        gsettings set org.gnome.desktop.background picture-uri "${wallpaper_path}"
+    user="administrator"
+    display=$(sudo -u "$user" sh -c 'echo $DISPLAY')
+    xauthority=$(sudo -u "$user" sh -c 'echo $XAUTHORITY')
+    admin_dbus=$(sudo -u "$user" sh -c 'echo $DBUS_SESSION_BUS_ADDRESS')
+    if [ -n "$display" ] && [ -n "$xauthority" ] && [ -n "$admin_dbus" ]; then
+        if ! sudo -u "$user" DISPLAY="$display" XAUTHORITY="$xauthority" DBUS_SESSION_BUS_ADDRESS="$dbus" gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/sch-walls/$(hostname).png"; then
+            echo "Failed to set wallpaper for $user"
+        fi
     else
-        echo "Wallpaper file not found: ${wallpaper_path}"
+        echo "Could not obtain necessary environment variables for $user"
     fi
 
     # Compile the schemas
