@@ -90,9 +90,6 @@ configure_teachers() {
         teacher_home=$(getent passwd "$teacher" | awk -F: '{ print $6 }')
         chmod 755 "$teacher_home"
     done
-
-    gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png
-
 }
 
 configure_symlinks() {
