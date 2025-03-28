@@ -19,6 +19,7 @@ main() {
     configure_ltsp
     configure_symlinks
     configure_teachers
+    su - "administrator" -c "gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png"
 }
 
 cmdline() {
@@ -170,7 +171,6 @@ configure_various() {
         [ "$(readlink -f /etc/alternatives/x-terminal-emulator)" != /usr/bin/mate-terminal.wrapper ]; then
         update-alternatives --set x-terminal-emulator /usr/bin/mate-terminal.wrapper
     fi
-    su - "administrator" -c "gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png"
 
 }
 
