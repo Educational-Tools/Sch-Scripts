@@ -137,18 +137,22 @@ configure_symlinks() {
 
 
 configure_various() {
+    # Get the server hostname
     hostname=$(hostname)
-    wallpaper_path="file:///usr/share/backgrounds/sch-walls/${hostname}.png"
-    user="administrator"
-    display=$(sudo -u "$user" sh -c 'echo $DISPLAY')
-    xauthority=$(sudo -u "$user" sh -c 'echo $XAUTHORITY')
-    admin_dbus=$(sudo -u "$user" sh -c 'echo $DBUS_SESSION_BUS_ADDRESS')
-    if [ -n "$display" ] && [ -n "$xauthority" ] && [ -n "$admin_dbus" ]; then
-        if ! sudo -u "$user" DISPLAY="$display" XAUTHORITY="$xauthority" DBUS_SESSION_BUS_ADDRESS="$dbus" gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/sch-walls/$(hostname).png"; then
-            echo "Failed to set wallpaper for $user"
-        fi
+
+    # Construct the greeter configuration
+    greeter="[Greeter]\n
+    background=/usr/share/backgrounds/sch-walls/${hostname}.png"
+
+    # Write the configuration to /etc/lightdm/slick-greeter.conf
+    echo "$greeter" > /etc/lightdm/slick-greeter.conf
+
+    # Check if the file was created successfully
+    if [ -f /etc/lightdm/slick-greeter.conf ]; then
+        echo "Slick greeter configuration created successfully."
     else
-        echo "Could not obtain necessary environment variables for $user"
+        echo "Error: Failed to create slick greeter configuration."
+        exit 1
     fi
 
     # Compile the schemas
