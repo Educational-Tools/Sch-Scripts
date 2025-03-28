@@ -137,6 +137,14 @@ configure_symlinks() {
 
 
 configure_various() {
+    hostname=$(hostname)
+    wallpaper_path="file:///usr/share/backgrounds/sch-walls/${hostname}.png"
+
+    if [ -f "/usr/share/backgrounds/sch-walls/${hostname}.png" ]; then
+        gsettings set org.gnome.desktop.background picture-uri "${wallpaper_path}"
+    else
+        echo "Wallpaper file not found: ${wallpaper_path}"
+    fi
 
     # Compile the schemas
     glib-compile-schemas /usr/share/glib-2.0/schemas/
