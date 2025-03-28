@@ -494,6 +494,7 @@
                         <property name="use-underline">True</property>
                         <signal name="activate" handler="on_mi_user_defaults_activate" swapped="no"/>
                       </object>
+                    </child>
                     <child>
                       <object class="GtkMenuItem" id="mi_remove_user">
                         <property name="visible">True</property>
