@@ -141,7 +141,7 @@ configure_various() {
     hostname=$(hostname)
 
     # Construct the greeter configuration
-    greeter="[Greeter]\n
+    greeter="[Greeter]
     background=/usr/share/backgrounds/sch-walls/${hostname}.png"
 
     # Write the configuration to /etc/lightdm/slick-greeter.conf
