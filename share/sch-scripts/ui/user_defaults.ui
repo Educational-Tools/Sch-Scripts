@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkWindow" id="window1">
+    <property name="title" translatable="yes">User Defaults</property>
+    <property name="default-width">300</property>
+    <property name="default-height">200</property>
+    <signal name="destroy" handler="on_window1_destroy" swapped="no"/>
+    <child>
+      <object class="GtkBox" id="box1">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton_wallpaper">
+            <property name="label" translatable="yes">Set Custom Wallpaper</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCheckButton" id="checkbutton_shortcuts">
+            <property name="label" translatable="yes">Set Custom Shortcuts</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="button_apply">
+            <property name="label" translatable="yes">Apply Settings</property>
+            <signal name="clicked" handler="on_button_apply_clicked" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
