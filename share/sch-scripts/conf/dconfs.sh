@@ -7,7 +7,7 @@ for user in /home/*; do
             {
                 echo "dconf write org.gnome.libgnomekbd.keyboard layouts \"['gr', 'us']\""
                 echo "dconf write org.gnome.libgnomekbd.keyboard options \"['grp\tgrp:alt_shift_toggle']\""
-                echo "gsettings set org.gnome.desktop.background picture-uri \\"file:///usr/share/backgrounds/sch-walls/${server_hostname}.png\\""
+                echo "gsettings set org.gnome.desktop.background picture-uri \"file:///usr/share/backgrounds/sch-walls/${server_hostname}.png\""
                 echo "dcong update"
             } >> "$profile_file"
         fi
