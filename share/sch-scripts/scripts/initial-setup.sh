@@ -137,8 +137,9 @@ configure_symlinks() {
 
 
 configure_various() {
-    # Set the background for the users.
-    sudo -Hu administrator gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png
+
+    # Compile the schemas
+    glib-compile-schemas /usr/share/glib-2.0/schemas/
     
     # Ensure that "server" is resolvable by DNS.
     if ! getent hosts server >/dev/null; then
