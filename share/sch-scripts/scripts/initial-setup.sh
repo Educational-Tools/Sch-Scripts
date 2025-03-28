@@ -19,7 +19,6 @@ main() {
     configure_ltsp
     configure_symlinks
     configure_teachers
-    su - "administrator" -c "gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png"
 }
 
 cmdline() {
@@ -30,7 +29,8 @@ cmdline() {
         test -f "$conf" && . "$conf"
         printf "LAST_VERSION=%s, _VERSION=%s, _PROMPT_AFTER=%s: " \
             "$LAST_VERSION" "$_VERSION" "$_PROMPT_AFTER"
-        if [ "$(printf "%s\n%s\n" "$_PROMPT_AFTER" "$LAST_VERSION" | sort -V | tail -n 1)" = "$_PROMPT_AFTER" ]; then
+        if [ "$(printf "%s\n%s\n" "$_PROMPT_AFTER" 
+"$LAST_VERSION" | sort -V | tail -n 1)" = "$_PROMPT_AFTER" ]; then
             echo "χρειάζεται να εκτελεστεί"
             exit 1
         else
@@ -137,6 +137,11 @@ configure_symlinks() {
 
 
 configure_various() {
+    # Set the background for the users.
+    if ! su - "administrator" -c "gsettings set org.gnome.desktop.background picture-uri file:///usr/share/backgrounds/sch-walls/$(hostname).png"; then
+        echo "Failed to set background for administrator."
+    fi
+    
     # Ensure that "server" is resolvable by DNS.
     if ! getent hosts server >/dev/null; then
         search_and_replace "^127.0.0.1[[:space:]]*localhost$" "& server" \
