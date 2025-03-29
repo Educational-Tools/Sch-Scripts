@@ -11,14 +11,17 @@ class UserDefaultsApp:
         self.builder.add_from_file("ui/user_defaults.ui")
         self.builder.connect_signals(self)
 
-        self.window = self.builder.get_object("window1")
+        self.window = self.builder.get_object("window_user_defaults")
         self.checkbutton_wallpaper = self.builder.get_object("checkbutton_wallpaper")
         self.checkbutton_shortcuts = self.builder.get_object("checkbutton_shortcuts")
 
         self.window.show_all()
 
-    def on_window1_destroy(self, window):
+    def on_window_user_defaults_delete_event(self, widget, event):
         Gtk.main_quit()
+
+    def on_button_cancel_clicked(self, button):
+        self.window.destroy()
 
     def on_button_apply_clicked(self, button):
         users = [user for user in os.listdir('/home') if os.path.isdir(os.path.join('/home', user)) and user != 'Shared']
