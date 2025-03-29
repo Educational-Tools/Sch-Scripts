@@ -185,16 +185,6 @@ configure_various() {
         [ "$(readlink -f /etc/alternatives/x-terminal-emulator)" != /usr/bin/mate-terminal.wrapper ]; then
         update-alternatives --set x-terminal-emulator /usr/bin/mate-terminal.wrapper
     fi
-
-    # Copy a script to admin
-    if [ ! -f /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh ]; then
-        mkdir -p /home/administrator/.local/share/sch-scripts/scripts
-        cp /usr/share/sch-scripts/scripts/user_defaults.sh \
-            /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
-        chown administrator:administrator -R \
-            /home/administrator/.local/share/sch-scripts/
-        chmod +x /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
-    fi
 }
 
 main "$@"

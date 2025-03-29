@@ -518,10 +518,6 @@ class Gui:
             for user in self.get_selected_users():
                 self.system.delete_user(user, rm_homes)
 
-    def on_mi_user_defaults_activate(self, widget):
-        """Show the user defaults selection dialog in a different process."""
-        subprocess.Popen(['./user_defaults.py'], stdin=open(os.devnull))
-
     def on_mi_remove_user_activate(self, widget):
         users = self.get_selected_users()
         groups = self.get_selected_groups()
