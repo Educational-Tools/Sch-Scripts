@@ -36,9 +36,7 @@ class UserDefaultsApp:
             arguments.append("walls")
 
         if arguments:
-            # Execute the shell script with the collected arguments
-            subprocess.run("/home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh " + arguments)
-
+            subprocess.Popen(('/home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh ' + arguments))
 if __name__ == "__main__":
     app = UserDefaultsApp()
     Gtk.main()

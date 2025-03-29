@@ -47,9 +47,9 @@ class UpdatesDialog(object):
         if self.builder.get_object('chb_poweroff').get_active():
             cmd += ['-p1']
         if self.standalone:
-            os.execv('./run-in-terminal', cmd)
+            os.execv('./scripts/run-in-terminal', cmd)
         else:
-            os.spawnvp(os.P_NOWAIT, './run-in-terminal', cmd)
+            os.spawnvp(os.P_NOWAIT, './scripts/run-in-terminal', cmd)
 
     def quit(self, cancelled):
         """Close the main window."""
