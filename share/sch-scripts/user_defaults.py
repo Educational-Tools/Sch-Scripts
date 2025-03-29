@@ -72,13 +72,13 @@ class UserDefaultsApp:
         wallpaper_path = f"/usr/share/backgrounds/sch-walls/{hostname}.png"
 
         if self.checkbutton_wallpaper.get_active():
-            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.background.picture-uri", f"file://{wallpaper_path}"])
+            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.background", "picture-uri", f"file://{wallpaper_path}"])
 
         if self.checkbutton_shortcuts.get_active():
             # Example: Set a custom keyboard shortcut
-            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybindings.custom0.name", "My Shortcut"])
-            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybindings.custom0.command", "my-command"])
-            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybindings.custom0.binding", "<Ctrl><Alt>S"])
+            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybindings", "custom0::name", "My Shortcut"])
+            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybindings", "custom0::command", "my-command"])
+            self.run_as_user(user_home, ["gsettings", "set", "org.cinnamon.desktop.keybindings.custom-keybindings", "custom0::binding", "<Ctrl><Alt>S"])
 
     def run_as_user(self, user_home, command):
         user = os.path.basename(user_home)
