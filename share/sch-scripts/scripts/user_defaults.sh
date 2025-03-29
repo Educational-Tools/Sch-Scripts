@@ -4,14 +4,10 @@
 # Copyright 2009-2022 the sch-scripts team, see AUTHORS
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-# Ensure the script is run by the 'administrator' user
 if [ "$(id -un)" != "administrator" ]; then
     echo "This script must be run by the 'administrator' user."
     exit 1
 fi
-
-# Debug: Print all arguments received
-echo "Arguments received: $@"
 
 # Function to set the wallpaper
 set_wallpaper() {
@@ -28,10 +24,15 @@ set_wallpaper() {
     done
 }
 
-# Main logic to handle arguments
-if [ "$1" == "walls" ]; then
-    set_wallpaper
-else
-    echo "Unknown argument: $1"
-    exit 1
-fi
+main() {
+    for arg in "$@"; do
+        if [ "$arg" == "walls" ]; then
+            set_wallpaper
+        else
+            echo "Unknown argument: $arg"
+        fi
+    done
+}
+
+# Call the main function with all arguments
+main "$@"

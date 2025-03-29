@@ -29,7 +29,7 @@ cmdline() {
         test -f "$conf" && . "$conf"
         printf "LAST_VERSION=%s, _VERSION=%s, _PROMPT_AFTER=%s: " \
             "$LAST_VERSION" "$_VERSION" "$_PROMPT_AFTER"
-        if [ "$(printf "%s\n%s\n" "$_PROMPT_AFTER" 
+        if [ "$(printf "%s\n%s\n" "$_PROMPT_AFTER" \
 "$LAST_VERSION" | sort -V | tail -n 1)" = "$_PROMPT_AFTER" ]; then
             echo "χρειάζεται να εκτελεστεί"
             exit 1
@@ -130,11 +130,10 @@ configure_symlinks() {
             /usr/local/share/applications/mimeapps.list
     fi
     # Work around for keyboard layout switching with Alt+Shift (LP: #1892014)
-    # Adds 3 lines to each ueers .profile file. 
+    # Adds 3 lines to each ueers .profile file.
     symlink /usr/share/sch-scripts/conf/dconfs.sh \
         /etc/profile.d/dconf_edits.sh
 }
-
 
 configure_various() {
     # Get the server hostname
@@ -157,7 +156,7 @@ background=/usr/share/backgrounds/sch-walls/${hostname}.png"
 
     # Compile the schemas
     glib-compile-schemas /usr/share/glib-2.0/schemas/
-    
+
     # Ensure that "server" is resolvable by DNS.
     if ! getent hosts server >/dev/null; then
         search_and_replace "^127.0.0.1[[:space:]]*localhost$" "& server" \
@@ -193,6 +192,22 @@ background=/usr/share/backgrounds/sch-walls/${hostname}.png"
         update-alternatives --set x-terminal-emulator /usr/bin/mate-terminal.wrapper
     fi
 
+    # Define the source and destination paths
+    SOURCE_PATH="/usr/share/sch-scripts/scripts/user_defaults.sh"
+    DEST_DIR="/home/administrator/.local/share/sch-scripts/scripts"
+    DEST_PATH="$DEST_DIR/user_defaults.sh"
+
+    # Create the destination directory if it doesn't exist
+    mkdir -p "$DEST_DIR"
+
+    # Copy the user_defaults.sh script to the destination directory
+    cp "$SOURCE_PATH" "$DEST_PATH"
+
+    # Set the correct permissions for the script
+    chown administrator:administrator "$DEST_PATH"
+    chmod 750 "$DEST_PATH"
+
+    echo "user_defaults.sh has been installed to $DEST_PATH."
 }
 
 main "$@"
