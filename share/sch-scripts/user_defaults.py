@@ -22,21 +22,17 @@ class UserDefaultsApp:
         self.checkbutton_wallpaper = self.builder.get_object("checkbutton_wallpaper")
 
         self.window.show_all()
+        self.arguments = []
 
-    def on_window_user_defaults_delete_event(self, widget, event):
-        Gtk.main_quit()
+        if self.checkbutton_wallpaper.get_active():
+            self.arguments.append("walls")
 
     def on_button_cancel_clicked(self, button):
         self.window.destroy()
 
-    def on_button_apply_clicked(self, button):
-        arguments = []
+    def on_button_apply_activated(self, button):
+        subprocess.Popen(('/home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh ' + ' '.join(self.arguments)))
 
-        if self.checkbutton_wallpaper.get_active():
-            arguments.append("walls")
-
-        if arguments:
-            subprocess.Popen(('/home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh ' + arguments))
 if __name__ == "__main__":
     app = UserDefaultsApp()
     Gtk.main()
