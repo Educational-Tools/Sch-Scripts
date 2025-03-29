@@ -8,7 +8,6 @@ Sch-scripts user defaults configuration.
 
 import os
 import subprocess
-import socket
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
@@ -21,7 +20,6 @@ class UserDefaultsApp:
 
         self.window = self.builder.get_object("window_user_defaults")
         self.checkbutton_wallpaper = self.builder.get_object("checkbutton_wallpaper")
-        self.checkbutton_shortcuts = self.builder.get_object("checkbutton_shortcuts")
 
         self.window.show_all()
 
@@ -32,25 +30,14 @@ class UserDefaultsApp:
         self.window.destroy()
 
     def on_button_apply_clicked(self, button):
-        users = [user for user in os.listdir('/home') if os.path.isdir(os.path.join('/home', user)) and user != 'Shared']
+        arguments = []
 
-        commands = []
+        if self.checkbutton_wallpaper.get_active():
+            arguments.append("walls")
 
-        for user in users:
-            user_home = os.path.join('/home', user)
-            hostname = socket.gethostname()
-            wallpaper_path = f"/usr/share/backgrounds/sch-walls/{hostname}.png"
-
-            if self.checkbutton_wallpaper.get_active():
-                commands.append(f"su - {user} -c 'gsettings set org.cinnamon.desktop.background picture-uri file://{wallpaper_path}'")
-
-            if self.checkbutton_shortcuts.get_active():
-                commands.append(f"print('Test')")
-
-        # Execute all commands in a terminal
-        if commands:
-            full_command = " && ".join(commands)
-            os.system(f"gnome-terminal -- bash -c '{full_command}; exec bash'")
+        if arguments:
+            # Execute the shell script with the collected arguments
+            subprocess.run(['sudo', '-u', 'administrator', './scripts/user_defaults.sh'] + arguments)
 
 if __name__ == "__main__":
     app = UserDefaultsApp()

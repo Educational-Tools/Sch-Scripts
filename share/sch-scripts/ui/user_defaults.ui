@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.0"/>
   <object class="GtkWindow" id="window_user_defaults">
@@ -21,45 +20,6 @@
         <property name="orientation">vertical</property>
         <property name="spacing">12</property>
         <child>
-          <object class="GtkBox">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="spacing">12</property>
-            <child>
-              <object class="GtkImage">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="pixel-size">48</property>
-                <property name="icon-name">system-users</property>
-                <property name="icon_size">6</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkLabel">
-                <property name="visible">True</property>
-                <property name="can-focus">False</property>
-                <property name="label" translatable="yes">Select the default settings you want to apply to all users:</property>
-                <property name="wrap">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
           <object class="GtkCheckButton" id="checkbutton_wallpaper">
             <property name="label" translatable="yes">Set Custom Wallpaper</property>
             <property name="visible">True</property>
@@ -72,23 +32,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkCheckButton" id="checkbutton_shortcuts">
-            <property name="label" translatable="yes">Set Custom Shortcuts</property>
-            <property name="visible">True</property>
-            <property name="can-focus">True</property>
-            <property name="receives-default">False</property>
-            <property name="tooltip-text" translatable="yes">Set custom keyboard shortcuts for all users</property>
-            <property name="active">True</property>
-            <property name="draw-indicator">True</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -133,7 +77,7 @@
             <property name="expand">False</property>
             <property name="fill">False</property>
             <property name="pack-type">end</property>
-            <property name="position">3</property>
+            <property name="position">1</property>
           </packing>
         </child>
       </object>
