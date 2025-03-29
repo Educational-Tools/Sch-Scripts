@@ -191,8 +191,9 @@ configure_various() {
         mkdir -p /home/administrator/.local/share/sch-scripts/scripts
         cp /usr/share/sch-scripts/scripts/user_defaults.sh \
             /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
-        chown administrator:administrator \
-            /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
+        chown administrator:administrator -R \
+            /home/administrator/.local/share/sch-scripts/
+        chmod +x /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
     fi
 }
 
