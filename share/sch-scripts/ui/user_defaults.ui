@@ -4,7 +4,7 @@
   <object class="GtkWindow" id="window_user_defaults">
     <property name="can-focus">False</property>
     <property name="border-width">6</property>
-    <property name="title" translatable="yes">User Defaults</property>
+    <property name="title" translatable="yes">Προεπιλογές Χρηστών</property>
     <property name="window-position">center</property>
     <property name="default-width">400</property>
     <property name="icon-name">system-users</property>
@@ -21,11 +21,11 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkCheckButton" id="checkbutton_wallpaper">
-            <property name="label" translatable="yes">Set Custom Wallpaper</property>
+            <property name="label" translatable="yes">Εφαρμογή Σχολικής Ταπετσαρίας</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="receives-default">False</property>
-            <property name="tooltip-text" translatable="yes">Set a custom wallpaper for all users</property>
+            <property name="tooltip-text" translatable="yes">Ορίζει την ταπετσαρία του σχολείου σας.</property>
             <property name="active">True</property>
             <property name="draw-indicator">True</property>
           </object>
@@ -47,7 +47,7 @@
                 <property name="can-focus">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-stock">True</property>
-                <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_button_cancel_activated" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -64,7 +64,7 @@
                 <property name="has-default">True</property>
                 <property name="receives-default">True</property>
                 <property name="use-stock">True</property>
-                <signal name="clicked" handler="on_button_apply_clicked" swapped="no"/>
+                <signal name="clicked" handler="on_button_apply_activated" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

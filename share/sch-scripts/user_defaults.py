@@ -27,7 +27,7 @@ class UserDefaultsApp:
         if self.checkbutton_wallpaper.get_active():
             self.arguments.append("walls")
 
-    def on_button_cancel_clicked(self, button):
+    def on_button_cancel_activated(self, button):
         self.window.destroy()
 
     def on_button_apply_activated(self, button):
