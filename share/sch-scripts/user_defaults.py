@@ -36,10 +36,8 @@ class UserDefaultsApp:
             arguments.append("walls")
 
         if arguments:
-            # Define the path to the user_defaults.sh script
-            script_path = "/home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh"
             # Execute the shell script with the collected arguments
-            subprocess.run([script_path] + arguments)
+            subprocess.run("/home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh " + arguments)
 
 if __name__ == "__main__":
     app = UserDefaultsApp()

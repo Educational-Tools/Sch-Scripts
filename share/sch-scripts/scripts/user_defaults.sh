@@ -10,29 +10,23 @@ if [ "$(id -un)" != "administrator" ]; then
 fi
 
 # Function to set the wallpaper
-set_wallpaper() {
-    hostname=$(hostname)
-    wallpaper_path="/usr/share/backgrounds/sch-walls/${hostname}.png"
-
-    echo "Setting wallpaper for all users to: ${wallpaper_path}"
-
-    for user_home in /home/*; do
-        if [ -d "$user_home" ] && [ "$(basename "$user_home")" != "Shared" ]; then
-            user=$(basename "$user_home")
-            su - "$user" -c "gsettings set org.cinnamon.desktop.background picture-uri file://${wallpaper_path}"
-        fi
-    done
+walls() {
+    if [ ! -d /usr/share/backgrounds/sch-walls ]; then
+        echo "Directory /usr/share/backgrounds/sch-walls does not exist."
+        return 1
+    else
+        gsettings set org.gnome.desktop.background picture-uri "file:///usr/share/backgrounds/sch-walls/$(hostname).png"
+    fi
 }
 
 main() {
     for arg in "$@"; do
         if [ "$arg" == "walls" ]; then
-            set_wallpaper
+            walls
         else
             echo "Unknown argument: $arg"
         fi
     done
 }
 
-# Call the main function with all arguments
 main "$@"

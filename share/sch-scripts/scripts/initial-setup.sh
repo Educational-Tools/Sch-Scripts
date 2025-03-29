@@ -136,12 +136,6 @@ configure_symlinks() {
 }
 
 configure_various() {
-    # Get the server hostname
-    hostname=$(hostname)
-
-    # Construct the greeter configuration
-    greeter="[Greeter]
-background=/usr/share/backgrounds/sch-walls/${hostname}.png"
 
     # Write the configuration to /etc/lightdm/slick-greeter.conf
     echo "$greeter" > /etc/lightdm/slick-greeter.conf
@@ -192,22 +186,14 @@ background=/usr/share/backgrounds/sch-walls/${hostname}.png"
         update-alternatives --set x-terminal-emulator /usr/bin/mate-terminal.wrapper
     fi
 
-    # Define the source and destination paths
-    SOURCE_PATH="/usr/share/sch-scripts/scripts/user_defaults.sh"
-    DEST_DIR="/home/administrator/.local/share/sch-scripts/scripts"
-    DEST_PATH="$DEST_DIR/user_defaults.sh"
-
-    # Create the destination directory if it doesn't exist
-    mkdir -p "$DEST_DIR"
-
-    # Copy the user_defaults.sh script to the destination directory
-    cp "$SOURCE_PATH" "$DEST_PATH"
-
-    # Set the correct permissions for the script
-    chown administrator:administrator "$DEST_PATH"
-    chmod 750 "$DEST_PATH"
-
-    echo "user_defaults.sh has been installed to $DEST_PATH."
+    # Copy a script to admin
+    if [ ! -f /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh ]; then
+        mkdir -p /home/administrator/.local/share/sch-scripts/scripts
+        cp /usr/share/sch-scripts/scripts/user_defaults.sh \
+            /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
+        chown administrator:administrator \
+            /home/administrator/.local/share/sch-scripts/scripts/user_defaults.sh
+    fi
 }
 
 main "$@"
