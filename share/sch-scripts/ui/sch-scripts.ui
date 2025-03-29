@@ -471,7 +471,16 @@
                       <object class="GtkMenuItem" id="mi_edit_user">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Επεξεργασία χρήστη...</property>
+                        <property name="label" translat                    <child>
+                      <object class="GtkMenuItem" id="mi_user_defaults">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Εμφανίζει έναν διάλογο επιλογής προεπιλεγμένων ρυθμίσεων στους χρήστες.</property>
+                        <property name="label" translatable="yes">Προεπιλογές χρηστών...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="on_mi_user_defaults_activate" swapped="no"/>
+                      </object>
+                    </child>able="yes">Επεξεργασία χρήστη...</property>
                         <property name="use-underline">True</property>
                         <signal name="activate" handler="on_mi_edit_user_activate" swapped="no"/>
                       </object>
