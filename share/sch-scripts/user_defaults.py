@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-# This file is part of sch-scripts, https://sch-scripts.gitlab.io
-# Copyright 2009-2022 the sch-scripts team, see AUTHORS
-# SPDX-License-Identifier: GPL-3.0-or-later
-"""
-Sch-scripts user defaults.
-"""
 import os
 import subprocess
 import socket
@@ -31,11 +24,48 @@ class UserDefaultsApp:
         self.window.destroy()
 
     def on_button_apply_clicked(self, button):
-        users = [user for user in os.listdir('/home') if os.path.isdir(os.path.join('/home', user)) and user != 'Shared']
+        # Show confirmation dialog
+        dialog = Gtk.MessageDialog(
+            transient_for=self.window,
+            flags=0,
+            message_type=Gtk.MessageType.QUESTION,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            text="Are you sure you want to apply these settings?",
+        )
+        response = dialog.run()
+        dialog.destroy()
 
-        for user in users:
-            user_home = os.path.join('/home', user)
-            self.apply_settings(user_home)
+        if response == Gtk.ResponseType.OK:
+            try:
+                users = [user for user in os.listdir('/home') if os.path.isdir(os.path.join('/home', user)) and user != 'Shared']
+
+                for user in users:
+                    user_home = os.path.join('/home', user)
+                    self.apply_settings(user_home)
+
+                # Show success dialog
+                success_dialog = Gtk.MessageDialog(
+                    transient_for=self.window,
+                    flags=0,
+                    message_type=Gtk.MessageType.INFO,
+                    buttons=Gtk.ButtonsType.OK,
+                    text="Settings applied successfully!",
+                )
+                success_dialog.run()
+                success_dialog.destroy()
+
+            except Exception as e:
+                # Show failure dialog with error message
+                failure_dialog = Gtk.MessageDialog(
+                    transient_for=self.window,
+                    flags=0,
+                    message_type=Gtk.MessageType.ERROR,
+                    buttons=Gtk.ButtonsType.OK,
+                    text="Failed to apply settings.",
+                )
+                failure_dialog.format_secondary_text(str(e))
+                failure_dialog.run()
+                failure_dialog.destroy()
 
     def apply_settings(self, user_home):
         hostname = socket.gethostname()
